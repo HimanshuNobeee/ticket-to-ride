@@ -11,6 +11,7 @@ import './App.css';
 
 function App() {
   const [highlightedCities, setHighlightedCities] = useState<string[]>([]);
+  const [showVictoryOverlay, setShowVictoryOverlay] = useState(true);
   const {
     playerId,
     gameState,
@@ -97,19 +98,14 @@ function App() {
   const isLastRound = gameState.gameStage === 'LAST_ROUND';
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '16px' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '16px', overflowY: 'auto' }}>
       
       {/* Top Banner Control Bar */}
       <div
-        className="glass-panel"
+        className="glass-panel top-banner"
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '12px 24px',
-          marginBottom: '20px',
           borderLeft: isLastRound ? '4px solid #ef4444' : undefined,
-          background: isLastRound ? 'rgba(239, 68, 68, 0.08)' : 'rgba(15, 23, 42, 0.85)'
+          background: isLastRound ? 'rgba(239, 68, 68, 0.08)' : undefined
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -173,10 +169,10 @@ function App() {
       )}
 
       {/* Main Board and Asset Dashboard Columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(600px, 2.5fr) 1fr', gap: '20px', flex: 1 }}>
+      <div className="game-container">
         
         {/* Left Hand Column: Board Map */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="map-column">
           <Board
             playerId={playerId}
             gameState={gameState}
@@ -184,14 +180,45 @@ function App() {
             setError={setError}
             highlightedCities={highlightedCities}
           />
-          {/* Historical text feed */}
-          <HistoryLog history={gameState.history} />
         </div>
 
         {/* Right Hand Column: Inventory, Decks and Leaderboard */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="sidebar-column">
           {/* Standings list */}
-          <Scoreboard playerId={playerId} gameState={gameState} />
+          <Scoreboard playerId={playerId} gameState={gameState} onHighlightCities={setHighlightedCities} />
+
+          {/* Route Scoring Guide */}
+          <div className="glass-panel" style={{ padding: '12px 16px', background: 'rgba(15, 23, 42, 0.45)', border: '1px solid rgba(255,255,255,0.04)' }}>
+            <h4 style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', fontWeight: '700' }}>
+              Route Scoring Guide
+            </h4>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8', fontSize: '10px' }}>1 Car</span>
+                <strong style={{ color: '#10b981' }}>1 pt</strong>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8', fontSize: '10px' }}>2 Cars</span>
+                <strong style={{ color: '#10b981' }}>2 pts</strong>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8', fontSize: '10px' }}>3 Cars</span>
+                <strong style={{ color: '#10b981' }}>4 pts</strong>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8', fontSize: '10px' }}>4 Cars</span>
+                <strong style={{ color: '#10b981' }}>7 pts</strong>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8', fontSize: '10px' }}>5 Cars</span>
+                <strong style={{ color: '#10b981' }}>10 pts</strong>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8', fontSize: '10px' }}>6 Cars</span>
+                <strong style={{ color: '#10b981' }}>15 pts</strong>
+              </div>
+            </div>
+          </div>
 
           {/* Cards to draw */}
           {!isGameOver && (
@@ -208,12 +235,17 @@ function App() {
           )}
 
           {/* Player Hand asset stubs */}
-          <Hand playerId={playerId} gameState={gameState} />
+          <Hand playerId={playerId} gameState={gameState} onHighlightCities={setHighlightedCities} />
         </div>
       </div>
 
+      {/* Historical text feed outside viewport / below */}
+      <div style={{ marginTop: '16px' }}>
+        <HistoryLog history={gameState.history} />
+      </div>
+
       {/* Victory recap full overlay */}
-      {isGameOver && (
+      {isGameOver && showVictoryOverlay && (
         <div
           style={{
             position: 'fixed',
@@ -289,15 +321,46 @@ function App() {
               })}
             </div>
 
-            <button
-              className="btn-primary"
-              onClick={leaveRoom}
-              style={{ width: '100%', padding: '14px', justifyContent: 'center' }}
-            >
-              Return to Main Lobby <ArrowRight size={18} />
-            </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                className="btn-secondary"
+                onClick={() => setShowVictoryOverlay(false)}
+                style={{ flex: 1, padding: '14px', justifyContent: 'center' }}
+              >
+                Observe Board
+              </button>
+              <button
+                className="btn-primary"
+                onClick={leaveRoom}
+                style={{ flex: 1.5, padding: '14px', justifyContent: 'center' }}
+              >
+                Return to Main Lobby <ArrowRight size={18} />
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {isGameOver && !showVictoryOverlay && (
+        <button
+          className="btn-primary pulse-glow animate-fade-in"
+          onClick={() => setShowVictoryOverlay(true)}
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            zIndex: 1000,
+            boxShadow: '0 0 15px rgba(251, 191, 36, 0.4)',
+            border: '1.5px solid #fbbf24',
+            background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+            padding: '12px 20px',
+            borderRadius: '10px',
+            fontWeight: '700',
+            cursor: 'pointer'
+          }}
+        >
+          🏆 Show Standings
+        </button>
       )}
     </div>
   );

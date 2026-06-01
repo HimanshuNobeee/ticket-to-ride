@@ -19,7 +19,7 @@ const getHexColor = (color: CardColor): string => {
     case 'BLUE': return '#3b82f6';
     case 'GREEN': return '#10b981';
     case 'YELLOW': return '#eab308';
-    case 'BLACK': return '#1e293b';
+    case 'BLACK': return '#17171a';
     case 'ORANGE': return '#f97316';
     case 'WHITE': return '#ffffff';
     case 'PURPLE': return '#a855f7';
@@ -42,7 +42,7 @@ export const Deck: React.FC<DeckProps> = ({
   const [hoveredTicket, setHoveredTicket] = useState<DestinationTicket | null>(null);
 
   const activePlayer = gameState.players[gameState.turnIndex];
-  const isMyTurn = activePlayer?.id === playerId && gameState.gameStage === 'PLAYING';
+  const isMyTurn = activePlayer?.id === playerId && (gameState.gameStage === 'PLAYING' || gameState.gameStage === 'LAST_ROUND');
 
   const pendingTickets = (gameState as any).pendingTickets?.[playerId] as DestinationTicket[] | undefined;
   const isInitialDraw = gameState.gameStage === 'INITIAL_DRAW';
@@ -151,37 +151,67 @@ export const Deck: React.FC<DeckProps> = ({
           )}
         </h3>
 
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {/* Face-Down Train Deck */}
-          <div
-            onClick={() => handleCardClick(-1)}
-            style={{
-              width: '80px',
-              height: '116px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-              border: '2px solid rgba(59, 130, 246, 0.3)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              cursor: isMyTurn ? 'pointer' : 'default',
-              boxShadow: isMyTurn ? '0 0 15px rgba(59, 130, 246, 0.15)' : 'none',
-              transition: 'all 0.2s ease',
-              position: 'relative'
-            }}
-            className="hover-scale"
-          >
-            <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(59,130,246,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '8px' }}>
-              <Layers size={20} color="#3b82f6" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Drawing Decks Row (Train & Destination stacks on top) */}
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            {/* Face-Down Train Deck */}
+            <div
+              onClick={() => handleCardClick(-1)}
+              style={{
+                width: '68px',
+                height: '96px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                border: '2px solid rgba(59, 130, 246, 0.3)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                cursor: isMyTurn ? 'pointer' : 'default',
+                boxShadow: isMyTurn ? '0 0 15px rgba(59, 130, 246, 0.15)' : 'none',
+                transition: 'all 0.2s ease',
+                position: 'relative'
+              }}
+              className="hover-scale"
+            >
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(59,130,246,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '4px' }}>
+                <Layers size={16} color="#3b82f6" />
+              </div>
+              <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: '600' }}>Train Pile</span>
+              <span style={{ fontSize: '13px', fontWeight: '800', marginTop: '2px', fontFamily: 'Outfit, sans-serif' }}>{gameState.deck.length} left</span>
             </div>
-            <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600' }}>Train Pile</span>
-            <span style={{ fontSize: '16px', fontWeight: '800', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>{gameState.deck.length} left</span>
+
+            {/* Destination Ticket Pile */}
+            <div
+              onClick={handleTicketDrawClick}
+              style={{
+                width: '90px',
+                height: '96px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #1e1b4b 0%, #0f0b29 100%)',
+                border: '2px solid rgba(168, 85, 247, 0.3)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                cursor: isMyTurn && drawCount === 0 ? 'pointer' : 'default',
+                opacity: isMyTurn && drawCount === 0 ? 1 : 0.6,
+                boxShadow: isMyTurn && drawCount === 0 ? '0 0 15px rgba(168, 85, 247, 0.15)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+              title={drawCount > 0 ? 'Cannot draw tickets if you already drew train cards' : 'Draw destination tickets'}
+            >
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(168,85,247,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '4px' }}>
+                <Compass size={16} color="#a855f7" />
+              </div>
+              <span style={{ fontSize: '10px', color: '#c084fc', fontWeight: '600' }}>Destinations</span>
+              <span style={{ fontSize: '13px', fontWeight: '800', marginTop: '2px', fontFamily: 'Outfit, sans-serif' }}>{gameState.destinationDeck.length} left</span>
+            </div>
           </div>
 
-          {/* 5 Face-Up Cards */}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {gameState.faceUpCards.map((color, index) => {
+          {/* 5 Face-Up Cards Row below */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+             {gameState.faceUpCards.map((color, index) => {
               const hex = getHexColor(color);
               const isWhite = color === 'WHITE';
               const isYellow = color === 'YELLOW';
@@ -193,9 +223,9 @@ export const Deck: React.FC<DeckProps> = ({
                   key={index}
                   onClick={() => !cardDisabled && handleCardClick(index)}
                   style={{
-                    width: '80px',
-                    height: '116px',
-                    borderRadius: '12px',
+                    width: '68px',
+                    height: '96px',
+                    borderRadius: '10px',
                     background: isLocomotive
                       ? 'linear-gradient(45deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #a855f7)'
                       : hex,
@@ -206,75 +236,29 @@ export const Deck: React.FC<DeckProps> = ({
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    padding: '10px',
+                    padding: '8px',
                     transition: 'all 0.2s ease',
                     position: 'relative'
                   }}
                   title={cardDisabled ? 'Locomotive cannot be drawn as a 2nd card' : `Draw ${color.toLowerCase()}`}
                 >
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '11px', pointerEvents: 'none' }} />
-                  <span style={{ fontSize: '10px', fontWeight: '800', color: isWhite || isYellow ? '#0f172a' : '#fff', letterSpacing: '-0.3px' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9px', pointerEvents: 'none' }} />
+                  <span style={{ fontSize: '9px', fontWeight: '800', color: isWhite || isYellow ? '#0f172a' : '#fff', letterSpacing: '-0.3px' }}>
                     {isLocomotive ? 'LOCO' : color}
                   </span>
-                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center', alignSelf: 'flex-end' }}>
-                    <Sparkles size={10} color={isWhite || isYellow ? '#0f172a' : '#fff'} />
+                  <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center', alignSelf: 'flex-end' }}>
+                    <Sparkles size={8} color={isWhite || isYellow ? '#0f172a' : '#fff'} />
                   </div>
                 </div>
               );
             })}
-          </div>
-
-          {/* Destination Ticket Pile */}
-          <div
-            onClick={handleTicketDrawClick}
-            style={{
-              width: '110px',
-              height: '116px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #1e1b4b 0%, #0f0b29 100%)',
-              border: '2px solid rgba(168, 85, 247, 0.3)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              cursor: isMyTurn && drawCount === 0 ? 'pointer' : 'default',
-              opacity: isMyTurn && drawCount === 0 ? 1 : 0.6,
-              boxShadow: isMyTurn && drawCount === 0 ? '0 0 15px rgba(168, 85, 247, 0.15)' : 'none',
-              transition: 'all 0.2s ease',
-              marginLeft: 'auto'
-            }}
-            title={drawCount > 0 ? 'Cannot draw tickets if you already drew train cards' : 'Draw destination tickets'}
-          >
-            <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(168,85,247,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '8px' }}>
-              <Compass size={20} color="#a855f7" />
-            </div>
-            <span style={{ fontSize: '11px', color: '#c084fc', fontWeight: '600' }}>Destinations</span>
-            <span style={{ fontSize: '15px', fontWeight: '800', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>{gameState.destinationDeck.length} left</span>
           </div>
         </div>
       </div>
 
       {/* Floating Ticket Selection Drawer - Replaced full screen overlay to keep map fully visible */}
       {pendingTickets && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '90px',
-            left: '20px',
-            width: '360px',
-            background: 'rgba(15, 23, 42, 0.95)',
-            backdropFilter: 'blur(10px)',
-            border: '1.5px solid rgba(168, 85, 247, 0.35)',
-            boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
-            borderRadius: '16px',
-            padding: '24px',
-            zIndex: 1100,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '14px',
-            animation: 'fadeIn 0.3s ease-out'
-          }}
-        >
+        <div className="ticket-drawer">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Compass color="#a855f7" size={22} />
             <h3 style={{ fontSize: '20px', fontWeight: '800' }}>Draft Tickets</h3>

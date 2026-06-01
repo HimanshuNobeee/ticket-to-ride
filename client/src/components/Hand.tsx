@@ -5,6 +5,7 @@ import { Landmark, Compass, CheckCircle2, AlertCircle } from 'lucide-react';
 interface HandProps {
   playerId: string;
   gameState: GameState;
+  onHighlightCities?: (cities: string[]) => void;
 }
 
 // Convert card colors to nice hex values for card tags
@@ -14,7 +15,7 @@ const getHexColor = (color: CardColor): string => {
     case 'BLUE': return '#3b82f6';
     case 'GREEN': return '#10b981';
     case 'YELLOW': return '#eab308';
-    case 'BLACK': return '#1e293b'; // Dark charcoal representing black cards
+    case 'BLACK': return '#17171a';
     case 'ORANGE': return '#f97316';
     case 'WHITE': return '#ffffff';
     case 'PURPLE': return '#a855f7';
@@ -51,7 +52,7 @@ const isTicketConnected = (playerRoutes: Route[], ticket: DestinationTicket): bo
   return false;
 };
 
-export const Hand: React.FC<HandProps> = ({ playerId, gameState }) => {
+export const Hand: React.FC<HandProps> = ({ playerId, gameState, onHighlightCities }) => {
   const player = gameState.players.find(p => p.id === playerId);
   if (!player) return null;
 
@@ -89,10 +90,10 @@ export const Hand: React.FC<HandProps> = ({ playerId, gameState }) => {
                 key={color}
                 style={{
                   position: 'relative',
-                  width: '68px',
-                  height: '96px',
-                  borderRadius: '10px',
-                  padding: '8px',
+                  width: '56px',
+                  height: '80px',
+                  borderRadius: '8px',
+                  padding: '6px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -108,10 +109,10 @@ export const Hand: React.FC<HandProps> = ({ playerId, gameState }) => {
                 }}
               >
                 {/* Visual grid lines for playing card aesthetic */}
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9px', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px', pointerEvents: 'none' }} />
 
                 <span style={{
-                  fontSize: '11px',
+                  fontSize: '9px',
                   fontWeight: '700',
                   color: isWhite || isYellow ? '#0f172a' : '#ffffff',
                   opacity: 0.9,
@@ -121,7 +122,7 @@ export const Hand: React.FC<HandProps> = ({ playerId, gameState }) => {
                 </span>
 
                 <span style={{
-                  fontSize: '32px',
+                  fontSize: '24px',
                   fontWeight: '800',
                   lineHeight: '1',
                   textAlign: 'right',
@@ -148,13 +149,15 @@ export const Hand: React.FC<HandProps> = ({ playerId, gameState }) => {
             No tickets drawn yet. You'll receive starting tickets once everyone is ready!
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
             {player.destinationTickets.map(ticket => {
               const connected = isTicketConnected(playerRoutes, ticket);
 
               return (
                 <div
                   key={ticket.id}
+                  onMouseEnter={() => onHighlightCities && onHighlightCities([ticket.city1, ticket.city2])}
+                  onMouseLeave={() => onHighlightCities && onHighlightCities([])}
                   style={{
                     padding: '14px',
                     borderRadius: '12px',

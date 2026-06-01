@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { CITIES } from '../utils/gameData.js';
 import type { GameState, Route, CardColor, RouteColor } from '../utils/gameData.js';
 import { USA_CITIES } from '../utils/usaMapData.js';
-import { Sparkles, MapPin, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { Sparkles, MapPin, ZoomIn, ZoomOut, RotateCcw, Lock, Unlock } from 'lucide-react';
 
 interface BoardProps {
   playerId: string;
@@ -18,12 +18,12 @@ const getHexColor = (color: RouteColor): string => {
     case 'BLUE': return '#3b82f6';
     case 'GREEN': return '#10b981';
     case 'YELLOW': return '#f59e0b';
-    case 'BLACK': return '#4b5563'; // Slate-gray representing black tracks
+    case 'BLACK': return '#3f3f46';
     case 'ORANGE': return '#f97316';
     case 'WHITE': return '#e2e8f0';
     case 'PURPLE': return '#a855f7';
     case 'LOCOMOTIVE': return '#38bdf8';
-    case 'GREY': return '#64748b';
+    case 'GREY': return '#94a3b8';
     default: return '#64748b';
   }
 };
@@ -86,13 +86,14 @@ export const Board: React.FC<BoardProps> = ({
   const [scale, setScale] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 });
-  const [dragDistance, setDragDistance] = useState(0);
+  const startScreenPointRef = useRef({ x: 0, y: 0 });
+  const [isLocked, setIsLocked] = useState(false);
 
   const isClassic = gameState.mapType === 'CLASSIC_USA';
   const activeCities = isClassic ? USA_CITIES : CITIES;
   const self = gameState.players.find(p => p.id === playerId);
   const activePlayer = gameState.players[gameState.turnIndex];
-  const isMyTurn = activePlayer?.id === playerId && gameState.gameStage === 'PLAYING';
+  const isMyTurn = activePlayer?.id === playerId && (gameState.gameStage === 'PLAYING' || gameState.gameStage === 'LAST_ROUND');
 
   // Choose dimension constraints based on the active map type
   // Classic USA is wider/taller (1220x920) than Express (1020x620)
@@ -106,7 +107,11 @@ export const Board: React.FC<BoardProps> = ({
 
   const handleRouteClick = (e: React.MouseEvent, route: Route) => {
     e.stopPropagation();
-    if (dragDistance > 6) return; // Ignore clicks if panning occurred
+    
+    const dx = e.clientX - startScreenPointRef.current.x;
+    const dy = e.clientY - startScreenPointRef.current.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (e.clientX !== 0 && e.clientY !== 0 && dist > 6) return; // Ignore clicks if panning occurred
 
     if (!isMyTurn) {
       setError("It's not your turn!");
@@ -145,27 +150,28 @@ export const Board: React.FC<BoardProps> = ({
   // 2. Pan and Zoom Handlers
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return; // Only trigger for left clicks / primary touches
+    startScreenPointRef.current = { x: e.clientX, y: e.clientY };
+    if (isLocked) return;
     setIsPanning(true);
     setStartPoint({ x: e.clientX - panX, y: e.clientY - panY });
-    setDragDistance(0);
-    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isLocked) return;
     if (!isPanning) return;
     const dx = e.clientX - startPoint.x;
     const dy = e.clientY - startPoint.y;
     setPanX(dx);
     setPanY(dy);
-    setDragDistance(prev => prev + Math.abs(e.movementX) + Math.abs(e.movementY));
   };
 
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerUp = () => {
+    if (isLocked) return;
     setIsPanning(false);
-    e.currentTarget.releasePointerCapture(e.pointerId);
   };
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (isLocked) return;
     const zoomIntensity = 0.08;
     let nextScale = scale;
     if (e.deltaY < 0) {
@@ -185,7 +191,7 @@ export const Board: React.FC<BoardProps> = ({
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       {/* SVG Board Map Container with Mouse and Touch event capture */}
       <div
         className="glass-panel"
@@ -193,9 +199,14 @@ export const Board: React.FC<BoardProps> = ({
           overflow: 'hidden',
           padding: '10px',
           background: 'rgba(9, 13, 22, 0.9)',
-          cursor: isPanning ? 'grabbing' : 'grab',
+          cursor: isLocked ? 'default' : (isPanning ? 'grabbing' : 'grab'),
           userSelect: 'none',
-          touchAction: 'none'
+          touchAction: 'none',
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 0
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -206,7 +217,8 @@ export const Board: React.FC<BoardProps> = ({
           viewBox={`0 0 ${mapWidth} ${mapHeight}`}
           style={{
             width: '100%',
-            height: 'auto',
+            height: '100%',
+            maxHeight: '100%',
             display: 'block',
             backgroundColor: '#0c1322',
             borderRadius: '12px',
@@ -313,40 +325,79 @@ export const Board: React.FC<BoardProps> = ({
                     strokeWidth="18"
                   />
 
-                  {/* Draw train track segment rectangles */}
+                  {/* Draw train track segment elements */}
                   {segments.map((seg, i) => (
-                    <rect
+                    <g
                       key={i}
-                      x={-seg.length / 2}
-                      y={-6}
-                      width={seg.length}
-                      height={12}
-                      rx={2}
                       transform={`translate(${(seg.x1 + seg.x2) / 2}, ${(seg.y1 + seg.y2) / 2}) rotate(${seg.angle})`}
-                      fill={trackColor}
-                      stroke={isHovered ? '#ffffff' : (isClaimed ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.06)')}
-                      strokeWidth={isHovered ? 1.5 : (isClaimed ? 0.8 : 0.4)}
-                      style={{
-                        transition: 'stroke 0.2s, stroke-width 0.2s',
-                        filter: isHovered || isClaimed ? `drop-shadow(0 0 3px ${trackColor})` : 'none',
-                        opacity: isClaimed ? 1 : 0.7
-                      }}
-                    />
-                  ))}
+                    >
+                      {/* Base train track segment rectangle */}
+                      <rect
+                        x={-seg.length / 2}
+                        y={-6}
+                        width={seg.length}
+                        height={12}
+                        rx={2}
+                        fill={trackColor}
+                        stroke={isHovered ? '#ffffff' : (isClaimed ? 'rgba(0,0,0,0.6)' : (route.color === 'BLACK' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)'))}
+                        strokeWidth={isHovered ? 1.5 : (isClaimed ? 1.2 : (route.color === 'BLACK' ? 0.95 : 0.6))}
+                        style={{
+                          transition: 'stroke 0.2s, stroke-width 0.2s',
+                          filter: isHovered || isClaimed ? `drop-shadow(0 0 4px ${trackColor})` : 'none',
+                          opacity: isClaimed ? 1 : 0.7
+                        }}
+                      />
 
-                  {/* Visual wheel stripes inside claimed trains */}
-                  {isClaimed && segments.map((seg, i) => (
-                    <line
-                      key={`line-${i}`}
-                      x1={-seg.length / 4}
-                      y1={0}
-                      x2={seg.length / 4}
-                      y2={0}
-                      transform={`translate(${(seg.x1 + seg.x2) / 2}, ${(seg.y1 + seg.y2) / 2}) rotate(${seg.angle})`}
-                      stroke="rgba(255,255,255,0.5)"
-                      strokeWidth="1.5"
-                      strokeDasharray="2 2"
-                    />
+                      {/* Train car detail overlays if claimed */}
+                      {isClaimed && (
+                        <>
+                          {/* Central window panel strip */}
+                          <rect
+                            x={-seg.length / 2 + 3}
+                            y={-3}
+                            width={seg.length - 6}
+                            height={4}
+                            rx={1}
+                            fill="rgba(0, 0, 0, 0.55)"
+                          />
+                          {/* Left Wheel */}
+                          <circle
+                            cx={-seg.length / 4}
+                            cy={4.5}
+                            r={1.8}
+                            fill="rgba(0, 0, 0, 0.85)"
+                            stroke="rgba(255, 255, 255, 0.25)"
+                            strokeWidth={0.5}
+                          />
+                          {/* Right Wheel */}
+                          <circle
+                            cx={seg.length / 4}
+                            cy={4.5}
+                            r={1.8}
+                            fill="rgba(0, 0, 0, 0.85)"
+                            stroke="rgba(255, 255, 255, 0.25)"
+                            strokeWidth={0.5}
+                          />
+                          {/* Train coupling line hooks */}
+                          <line
+                            x1={-seg.length / 2}
+                            y1={0}
+                            x2={-seg.length / 2 + 1.5}
+                            y2={0}
+                            stroke="rgba(255, 255, 255, 0.45)"
+                            strokeWidth={1}
+                          />
+                          <line
+                            x1={seg.length / 2 - 1.5}
+                            y1={0}
+                            x2={seg.length / 2}
+                            y2={0}
+                            stroke="rgba(255, 255, 255, 0.45)"
+                            strokeWidth={1}
+                          />
+                        </>
+                      )}
+                    </g>
                   ))}
                 </g>
               );
@@ -434,10 +485,31 @@ export const Board: React.FC<BoardProps> = ({
         }}
       >
         <button
+          onClick={() => setIsLocked(!isLocked)}
+          className="btn-secondary"
+          style={{
+            width: '36px',
+            height: '36px',
+            padding: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: '8px',
+            background: isLocked ? 'rgba(239, 68, 68, 0.85)' : 'rgba(15, 23, 42, 0.85)',
+            border: isLocked ? '1px solid #ef4444' : '1px solid rgba(255,255,255,0.1)',
+            color: isLocked ? '#fff' : '#94a3b8',
+            transition: 'all 0.2s ease'
+          }}
+          title={isLocked ? "Unlock Map Navigation" : "Lock Map Navigation"}
+        >
+          {isLocked ? <Lock size={16} /> : <Unlock size={16} />}
+        </button>
+        <button
           onClick={zoomIn}
           className="btn-secondary"
           style={{ width: '36px', height: '36px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.85)' }}
           title="Zoom In"
+          disabled={isLocked}
         >
           <ZoomIn size={18} />
         </button>
@@ -446,6 +518,7 @@ export const Board: React.FC<BoardProps> = ({
           className="btn-secondary"
           style={{ width: '36px', height: '36px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.85)' }}
           title="Zoom Out"
+          disabled={isLocked}
         >
           <ZoomOut size={18} />
         </button>
@@ -454,6 +527,7 @@ export const Board: React.FC<BoardProps> = ({
           className="btn-secondary"
           style={{ width: '36px', height: '36px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.85)' }}
           title="Reset View"
+          disabled={isLocked}
         >
           <RotateCcw size={16} />
         </button>

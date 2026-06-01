@@ -1,13 +1,41 @@
 import React from 'react';
-import type { GameState } from '../utils/gameData.js';
+import type { GameState, Route, DestinationTicket } from '../utils/gameData.js';
 import { Trophy, Users, Award, Shield } from 'lucide-react';
+
+const isTicketConnected = (playerRoutes: Route[], ticket: DestinationTicket): boolean => {
+  const adj: Record<string, string[]> = {};
+  for (const r of playerRoutes) {
+    if (!adj[r.city1]) adj[r.city1] = [];
+    if (!adj[r.city2]) adj[r.city2] = [];
+    adj[r.city1].push(r.city2);
+    adj[r.city2].push(r.city1);
+  }
+  
+  const visited = new Set<string>();
+  const queue: string[] = [ticket.city1];
+  visited.add(ticket.city1);
+  
+  while (queue.length > 0) {
+    const curr = queue.shift()!;
+    if (curr === ticket.city2) return true;
+    
+    for (const neighbor of adj[curr] || []) {
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push(neighbor);
+      }
+    }
+  }
+  return false;
+};
 
 interface ScoreboardProps {
   playerId: string;
   gameState: GameState;
+  onHighlightCities?: (cities: string[]) => void;
 }
 
-export const Scoreboard: React.FC<ScoreboardProps> = ({ playerId, gameState }) => {
+export const Scoreboard: React.FC<ScoreboardProps> = ({ playerId, gameState, onHighlightCities }) => {
   // Sort players by score descending
   const sortedPlayers = [...gameState.players].sort((a, b) => b.points - a.points);
   const activePlayer = gameState.players[gameState.turnIndex];
@@ -105,6 +133,44 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({ playerId, gameState }) =
                   🎫 <strong>{p.destinationTickets.length}</strong> tickets
                 </span>
               </div>
+
+              {/* If game is over, show completed/failed destination tickets */}
+              {gameState.gameStage === 'GAME_OVER' && p.destinationTickets.length > 0 && (
+                <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(0,0,0,0.25)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.03)', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.5px', marginBottom: '2px' }}>
+                    Destination Tickets:
+                  </div>
+                  {p.destinationTickets.map(t => {
+                    const playerRoutes = gameState.routes.filter(r => r.claimedBy === p.id);
+                    const connected = isTicketConnected(playerRoutes, t);
+                    return (
+                      <div
+                        key={t.id}
+                        onMouseEnter={() => onHighlightCities && onHighlightCities([t.city1, t.city2])}
+                        onMouseLeave={() => onHighlightCities && onHighlightCities([])}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          color: connected ? '#10b981' : '#ef4444',
+                          cursor: onHighlightCities ? 'help' : 'default',
+                          padding: '2px 4px',
+                          borderRadius: '4px',
+                          transition: 'background 0.2s ease'
+                        }}
+                        className="hover-bg-opacity"
+                      >
+                        <span>
+                          {connected ? '✅' : '❌'} {t.city1} to {t.city2}
+                        </span>
+                        <strong style={{ fontFamily: 'Outfit, sans-serif' }}>
+                          {connected ? `+${t.points}` : `-${t.points}`} pts
+                        </strong>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Action State / Warning alerts */}
               {isActive && (

@@ -187,3 +187,92 @@ h1, h2, h3, h4, h5, h6 {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* Responsive Gameplay Layout Styles */
+.game-container {
+  display: grid;
+  grid-template-columns: minmax(500px, 2.5fr) 1fr;
+  gap: 20px;
+  height: calc(100vh - 140px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.map-column {
+  height: 100%;
+  min-height: 0;
+}
+
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.top-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  margin-bottom: 20px;
+  background: rgba(15, 23, 42, 0.85);
+}
+
+.ticket-drawer {
+  position: fixed;
+  top: 90px;
+  left: 20px;
+  width: 360px;
+  max-width: calc(100vw - 40px);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(168, 85, 247, 0.35);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  border-radius: 16px;
+  padding: 24px;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@media (max-width: 900px) {
+  .game-container {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+    gap: 16px;
+  }
+  .map-column {
+    height: 55vh;
+    min-height: 420px;
+  }
+  .sidebar-column {
+    height: auto;
+    overflow-y: visible;
+    padding-right: 0;
+  }
+  .top-banner {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 12px;
+    text-align: center;
+  }
+  .top-banner > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .ticket-drawer {
+    left: 10px;
+    top: 80px;
+    width: calc(100vw - 20px);
+    padding: 16px;
+  }
+}

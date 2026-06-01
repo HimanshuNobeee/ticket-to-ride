@@ -144,7 +144,6 @@ export const USA_ROUTES: Route[] = [
   { id: 'w_rch1', city1: 'Washington', city2: 'Richmond', length: 1, color: 'GREY', claimedBy: null },
   { id: 'w_rch2', city1: 'Washington', city2: 'Richmond', length: 1, color: 'GREY', claimedBy: null },
   { id: 'rch_ral', city1: 'Richmond', city2: 'Raleigh', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'rch_atl', city1: 'Richmond', city2: 'Atlanta', length: 2, color: 'GREY', claimedBy: null },
   { id: 'ral_pit', city1: 'Raleigh', city2: 'Pittsburgh', length: 2, color: 'GREY', claimedBy: null },
   { id: 'ral_atl1', city1: 'Raleigh', city2: 'Atlanta', length: 2, color: 'GREY', claimedBy: null },
   { id: 'ral_atl2', city1: 'Raleigh', city2: 'Atlanta', length: 2, color: 'GREY', claimedBy: null },

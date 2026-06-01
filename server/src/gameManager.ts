@@ -15,7 +15,7 @@ import {
 } from './usaMapData.js';
 
 // Global map of active game states key=roomId
-const games: Record<string, GameState & { routes: Route[]; drawCountThisTurn: number; pendingTickets: Record<string, DestinationTicket[]> }> = {};
+const games: Record<string, GameState & { routes: Route[]; drawCountThisTurn: number; pendingTickets: Record<string, DestinationTicket[]>; discardPile: CardColor[] }> = {};
 
 // Helper to shuffle array
 function shuffle<T>(array: T[]): T[] {
@@ -25,6 +25,14 @@ function shuffle<T>(array: T[]): T[] {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+
+function checkAndRecycleDeck(game: any) {
+  if (game.deck.length === 0 && game.discardPile && game.discardPile.length > 0) {
+    game.deck = shuffle([...game.discardPile]);
+    game.discardPile = [];
+    game.history.push('Train deck empty. Shuffled discard pile back into deck.');
+  }
 }
 
 // Generate standard train deck
@@ -89,6 +97,7 @@ export function createRoom(roomId: string): GameState {
     routes: JSON.parse(JSON.stringify(INITIAL_ROUTES)),
     drawCountThisTurn: 0,
     pendingTickets: {},
+    discardPile: [],
     mapType: 'EXPRESS_USA'
   };
   return games[code];
@@ -191,8 +200,11 @@ export function startGame(roomId: string): GameState | null {
   game.turnIndex = 0;
   game.drawCountThisTurn = 0;
 
+  const initialTrains = game.mapType === 'CLASSIC_USA' ? 45 : 30;
+
   // Deal 4 starting cards to each player
   for (const player of game.players) {
+    player.trainsLeft = initialTrains;
     for (let i = 0; i < 4; i++) {
       const card = game.deck.pop();
       if (card) {
@@ -217,10 +229,16 @@ export function startGame(roomId: string): GameState | null {
 
 // Discard/redraw face-up cards if 3+ are Locomotives
 function replenishFaceUpCards(game: any) {
-  while (game.faceUpCards.length < 5 && game.deck.length > 0) {
+  while (game.faceUpCards.length < 5) {
+    checkAndRecycleDeck(game);
+    if (game.deck.length === 0) break; // No cards left anywhere
+
     const card = game.deck.pop();
     if (card) game.faceUpCards.push(card);
   }
+
+  // Recycle deck if it went to zero during the replenishment loop
+  checkAndRecycleDeck(game);
 
   // Count locomotives
   let locomotives = game.faceUpCards.filter((c: any) => c === 'LOCOMOTIVE').length;
@@ -229,8 +247,8 @@ function replenishFaceUpCards(game: any) {
     // Put back/discard and draw 5 new
     const oldFaceUp = game.faceUpCards;
     game.faceUpCards = [];
-    // Add old cards to bottom of deck (simplification of discard pile)
-    game.deck = shuffle([...oldFaceUp, ...game.deck]);
+    if (!game.discardPile) game.discardPile = [];
+    game.discardPile.push(...oldFaceUp);
     replenishFaceUpCards(game);
   }
 }
@@ -272,7 +290,7 @@ export function selectInitialTickets(roomId: string, playerId: string, keptTicke
 // Draw a train card (either from face-up or face-down deck)
 export function drawTrainCard(roomId: string, playerId: string, index: number): GameState | null {
   const game = getGame(roomId);
-  if (!game || game.gameStage !== 'PLAYING') return null;
+  if (!game || (game.gameStage !== 'PLAYING' && game.gameStage !== 'LAST_ROUND')) return null;
 
   const activePlayer = game.players[game.turnIndex];
   if (activePlayer.id !== playerId) return null; // Not their turn
@@ -285,11 +303,13 @@ export function drawTrainCard(roomId: string, playerId: string, index: number): 
 
   if (index === -1) {
     // Draw from face-down deck
+    checkAndRecycleDeck(game);
     drawnCard = game.deck.pop();
     if (!drawnCard) return null; // Deck empty
     player.cards[drawnCard]++;
     game.history.push(`${player.name} drew a card from the deck.`);
     game.drawCountThisTurn++;
+    checkAndRecycleDeck(game);
   } else {
     // Draw from face-up cards
     if (index < 0 || index >= game.faceUpCards.length) return null;
@@ -324,7 +344,7 @@ export function drawTrainCard(roomId: string, playerId: string, index: number): 
 // Draw destination tickets
 export function drawDestinationTicketsAction(roomId: string, playerId: string): GameState | null {
   const game = getGame(roomId);
-  if (!game || game.gameStage !== 'PLAYING') return null;
+  if (!game || (game.gameStage !== 'PLAYING' && game.gameStage !== 'LAST_ROUND')) return null;
 
   const activePlayer = game.players[game.turnIndex];
   if (activePlayer.id !== playerId) return null;
@@ -383,7 +403,7 @@ export function claimRouteAction(
   cardColorToUse: CardColor
 ): GameState | null {
   const game = getGame(roomId);
-  if (!game || game.gameStage !== 'PLAYING') return null;
+  if (!game || (game.gameStage !== 'PLAYING' && game.gameStage !== 'LAST_ROUND')) return null;
 
   const activePlayer = game.players[game.turnIndex];
   if (activePlayer.id !== playerId) return null;
@@ -417,15 +437,25 @@ export function claimRouteAction(
     return null; // Insufficient cards
   }
 
-  // Deduct cards
+  // Deduct cards and add to discard pile
   let remainingCost = cost;
   const colorUsedCount = Math.min(matches, remainingCost);
   player.cards[cardColorToUse] -= colorUsedCount;
+  if (!game.discardPile) game.discardPile = [];
+  for (let i = 0; i < colorUsedCount; i++) {
+    game.discardPile.push(cardColorToUse);
+  }
   remainingCost -= colorUsedCount;
 
   if (remainingCost > 0) {
     player.cards['LOCOMOTIVE'] -= remainingCost;
+    for (let i = 0; i < remainingCost; i++) {
+      game.discardPile.push('LOCOMOTIVE');
+    }
   }
+
+  checkAndRecycleDeck(game);
+  replenishFaceUpCards(game);
 
   // Update route and player state
   route.claimedBy = player.id;
