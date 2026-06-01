@@ -9,7 +9,7 @@ const getSocketUrl = () => {
     return import.meta.env.VITE_SOCKET_URL;
   }
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  return isLocalhost ? 'http://localhost:3001' : `http://${window.location.hostname}:3001`;
+  return isLocalhost ? 'http://localhost:3001' : 'https://ticket-to-ride-jkyl.onrender.com';
 };
 
 // Unique player ID generator saved in localStorage
@@ -69,7 +69,7 @@ export const useGameSocket = () => {
 
     newSocket.on('connect_error', () => {
       setIsConnected(false);
-      setError('Could not connect to game server. Make sure the server is running on port 3001.');
+      setError(`Could not connect to game server at: ${url}`);
     });
 
     newSocket.on('game-updated', (updatedState: GameState) => {

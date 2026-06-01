@@ -27,6 +27,11 @@ app.get('/health', (req, res) => {
   res.send({ status: 'OK', time: new Date() });
 });
 
+// Root welcome message
+app.get('/', (req, res) => {
+  res.send({ message: 'Ticket to Ride Server is Running. Please play the game at: https://t2r-mp-673f2a.web.app' });
+});
+
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
