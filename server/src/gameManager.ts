@@ -199,6 +199,8 @@ export function startGame(roomId: string): GameState | null {
 
   game.turnIndex = 0;
   game.drawCountThisTurn = 0;
+  game.lastPlayerId = null;
+  delete (game as any).lastRoundTurnsLeft;
 
   const initialTrains = game.mapType === 'CLASSIC_USA' ? 45 : 30;
 
@@ -502,14 +504,17 @@ export function claimRouteAction(
 function endTurn(game: any) {
   game.drawCountThisTurn = 0;
 
-  // Check if we are in LAST_ROUND and the NEXT player to play is the one who triggered it
   if (game.gameStage === 'LAST_ROUND') {
-    const nextIndex = (game.turnIndex + 1) % game.players.length;
-    const nextPlayer = game.players[nextIndex];
-    if (nextPlayer.id === game.lastPlayerId) {
-      // Game over! Run end game scoring
-      endGame(game);
-      return;
+    if (game.lastRoundTurnsLeft === undefined) {
+      // Initiator just finished their turn. Set countdown to number of players.
+      game.lastRoundTurnsLeft = game.players.length;
+    } else {
+      game.lastRoundTurnsLeft--;
+      if (game.lastRoundTurnsLeft === 0) {
+        // All players have taken their final turn. End the game.
+        endGame(game);
+        return;
+      }
     }
   }
 
