@@ -413,6 +413,24 @@ export function claimRouteAction(
   const route = game.routes.find(r => r.id === routeId);
 
   if (!route || route.claimedBy !== null) return null;
+
+  // Sibling routes (parallel/double routes connecting the same two cities)
+  const siblingRoutes = game.routes.filter(
+    r => (r.city1 === route.city1 && r.city2 === route.city2) ||
+         (r.city1 === route.city2 && r.city2 === route.city1)
+  );
+
+  if (siblingRoutes.length === 2) {
+    const otherRoute = siblingRoutes.find(r => r.id !== route.id);
+    if (otherRoute && otherRoute.claimedBy !== null) {
+      // 1. A player cannot claim both routes of a double route (applies to all player counts)
+      if (otherRoute.claimedBy === playerId) return null;
+      
+      // 2. In 2 or 3 player games, only one of the double routes can be claimed
+      if (game.players.length <= 3) return null;
+    }
+  }
+
   if (player.trainsLeft < route.length) return null; // Not enough trains
 
   // Validate cards

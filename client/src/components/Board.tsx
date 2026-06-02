@@ -169,6 +169,27 @@ export const Board: React.FC<BoardProps> = ({
       setError("This route is already claimed.");
       return;
     }
+
+    // Check double/parallel route constraints
+    const siblingRoutes = gameState.routes.filter(
+      r => (r.city1 === route.city1 && r.city2 === route.city2) ||
+           (r.city1 === route.city2 && r.city2 === route.city1)
+    );
+
+    if (siblingRoutes.length === 2) {
+      const otherRoute = siblingRoutes.find(r => r.id !== route.id);
+      if (otherRoute && otherRoute.claimedBy !== null) {
+        if (otherRoute.claimedBy === playerId) {
+          setError("You cannot claim both routes of a double route.");
+          return;
+        }
+        if (gameState.players.length <= 3) {
+          setError("In 2 or 3 player games, only one of the double routes can be claimed.");
+          return;
+        }
+      }
+    }
+
     if (self && self.trainsLeft < route.length) {
       setError(`Not enough trains left! You need ${route.length} trains.`);
       return;
