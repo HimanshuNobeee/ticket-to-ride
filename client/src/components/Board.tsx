@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CITIES } from '../utils/gameData.js';
 import type { GameState, Route, CardColor, RouteColor } from '../utils/gameData.js';
 import { USA_CITIES } from '../utils/usaMapData.js';
@@ -79,6 +79,54 @@ export const Board: React.FC<BoardProps> = ({
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [hoveredRoute, setHoveredRoute] = useState<Route | null>(null);
   const [claimingColor, setClaimingColor] = useState<CardColor | ''>('');
+
+  // Track newly claimed routes for popping animations
+  const claimedRoutesRef = useRef<Set<string>>(new Set());
+  const [animatingRoutes, setAnimatingRoutes] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!gameState || !gameState.routes) return;
+    const newAnimating: Record<string, boolean> = {};
+    let changed = false;
+
+    // First time load: populate without animating
+    if (claimedRoutesRef.current.size === 0) {
+      for (const r of gameState.routes) {
+        if (r.claimedBy !== null) {
+          claimedRoutesRef.current.add(r.id);
+        }
+      }
+      return;
+    }
+
+    for (const r of gameState.routes) {
+      if (r.claimedBy !== null) {
+        if (!claimedRoutesRef.current.has(r.id)) {
+          // This is a newly claimed route!
+          newAnimating[r.id] = true;
+          claimedRoutesRef.current.add(r.id);
+          changed = true;
+        }
+      } else {
+        if (claimedRoutesRef.current.has(r.id)) {
+          claimedRoutesRef.current.delete(r.id);
+        }
+      }
+    }
+
+    if (changed) {
+      setAnimatingRoutes(prev => ({ ...prev, ...newAnimating }));
+      setTimeout(() => {
+        setAnimatingRoutes(prev => {
+          const next = { ...prev };
+          for (const id of Object.keys(newAnimating)) {
+            delete next[id];
+          }
+          return next;
+        });
+      }, 3500); // Remove animation classes after 3.5s
+    }
+  }, [gameState.routes]);
 
   // 1. Pan and Zoom States
   const [panX, setPanX] = useState(0);
@@ -331,72 +379,79 @@ export const Board: React.FC<BoardProps> = ({
                       key={i}
                       transform={`translate(${(seg.x1 + seg.x2) / 2}, ${(seg.y1 + seg.y2) / 2}) rotate(${seg.angle})`}
                     >
-                      {/* Base train track segment rectangle */}
-                      <rect
-                        x={-seg.length / 2}
-                        y={-6}
-                        width={seg.length}
-                        height={12}
-                        rx={2}
-                        fill={trackColor}
-                        stroke={isHovered ? '#ffffff' : (isClaimed ? 'rgba(0,0,0,0.6)' : (route.color === 'BLACK' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)'))}
-                        strokeWidth={isHovered ? 1.5 : (isClaimed ? 1.2 : (route.color === 'BLACK' ? 0.95 : 0.6))}
+                      <g
+                        className={animatingRoutes[route.id] ? 'train-segment-animate' : ''}
                         style={{
-                          transition: 'stroke 0.2s, stroke-width 0.2s',
-                          filter: isHovered || isClaimed ? `drop-shadow(0 0 4px ${trackColor})` : 'none',
-                          opacity: isClaimed ? 1 : 0.7
+                          animationDelay: animatingRoutes[route.id] ? `${i * 120}ms` : undefined
                         }}
-                      />
+                      >
+                        {/* Base train track segment rectangle */}
+                        <rect
+                          x={-seg.length / 2}
+                          y={-6}
+                          width={seg.length}
+                          height={12}
+                          rx={2}
+                          fill={trackColor}
+                          stroke={isHovered ? '#ffffff' : (isClaimed ? 'rgba(0,0,0,0.6)' : (route.color === 'BLACK' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)'))}
+                          strokeWidth={isHovered ? 1.5 : (isClaimed ? 1.2 : (route.color === 'BLACK' ? 0.95 : 0.6))}
+                          style={{
+                            transition: 'stroke 0.2s, stroke-width 0.2s',
+                            filter: isHovered || isClaimed ? `drop-shadow(0 0 4px ${trackColor})` : 'none',
+                            opacity: isClaimed ? 1 : 0.7
+                          }}
+                        />
 
-                      {/* Train car detail overlays if claimed */}
-                      {isClaimed && (
-                        <>
-                          {/* Central window panel strip */}
-                          <rect
-                            x={-seg.length / 2 + 3}
-                            y={-3}
-                            width={seg.length - 6}
-                            height={4}
-                            rx={1}
-                            fill="rgba(0, 0, 0, 0.55)"
-                          />
-                          {/* Left Wheel */}
-                          <circle
-                            cx={-seg.length / 4}
-                            cy={4.5}
-                            r={1.8}
-                            fill="rgba(0, 0, 0, 0.85)"
-                            stroke="rgba(255, 255, 255, 0.25)"
-                            strokeWidth={0.5}
-                          />
-                          {/* Right Wheel */}
-                          <circle
-                            cx={seg.length / 4}
-                            cy={4.5}
-                            r={1.8}
-                            fill="rgba(0, 0, 0, 0.85)"
-                            stroke="rgba(255, 255, 255, 0.25)"
-                            strokeWidth={0.5}
-                          />
-                          {/* Train coupling line hooks */}
-                          <line
-                            x1={-seg.length / 2}
-                            y1={0}
-                            x2={-seg.length / 2 + 1.5}
-                            y2={0}
-                            stroke="rgba(255, 255, 255, 0.45)"
-                            strokeWidth={1}
-                          />
-                          <line
-                            x1={seg.length / 2 - 1.5}
-                            y1={0}
-                            x2={seg.length / 2}
-                            y2={0}
-                            stroke="rgba(255, 255, 255, 0.45)"
-                            strokeWidth={1}
-                          />
-                        </>
-                      )}
+                        {/* Train car detail overlays if claimed */}
+                        {isClaimed && (
+                          <>
+                            {/* Central window panel strip */}
+                            <rect
+                              x={-seg.length / 2 + 3}
+                              y={-3}
+                              width={seg.length - 6}
+                              height={4}
+                              rx={1}
+                              fill="rgba(0, 0, 0, 0.55)"
+                            />
+                            {/* Left Wheel */}
+                            <circle
+                              cx={-seg.length / 4}
+                              cy={4.5}
+                              r={1.8}
+                              fill="rgba(0, 0, 0, 0.85)"
+                              stroke="rgba(255, 255, 255, 0.25)"
+                              strokeWidth={0.5}
+                            />
+                            {/* Right Wheel */}
+                            <circle
+                              cx={seg.length / 4}
+                              cy={4.5}
+                              r={1.8}
+                              fill="rgba(0, 0, 0, 0.85)"
+                              stroke="rgba(255, 255, 255, 0.25)"
+                              strokeWidth={0.5}
+                            />
+                            {/* Train coupling line hooks */}
+                            <line
+                              x1={-seg.length / 2}
+                              y1={0}
+                              x2={-seg.length / 2 + 1.5}
+                              y2={0}
+                              stroke="rgba(255, 255, 255, 0.45)"
+                              strokeWidth={1}
+                            />
+                            <line
+                              x1={seg.length / 2 - 1.5}
+                              y1={0}
+                              x2={seg.length / 2}
+                              y2={0}
+                              stroke="rgba(255, 255, 255, 0.45)"
+                              strokeWidth={1}
+                            />
+                          </>
+                        )}
+                      </g>
                     </g>
                   ))}
                 </g>

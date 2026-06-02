@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { GameState, CardColor, Route, DestinationTicket } from '../utils/gameData.js';
 import { Landmark, Compass, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -58,6 +58,46 @@ export const Hand: React.FC<HandProps> = ({ playerId, gameState, onHighlightCiti
 
   const playerRoutes = gameState.routes.filter((r: Route) => r.claimedBy === playerId);
 
+  // Bump animation state when cards increase
+  const prevCountsRef = useRef<Record<string, number>>({});
+  const [bumpedColors, setBumpedColors] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!player || !player.cards) return;
+    const nextBumped: Record<string, boolean> = {};
+    let changed = false;
+
+    // First time load: just store counts
+    if (Object.keys(prevCountsRef.current).length === 0) {
+      for (const [color, count] of Object.entries(player.cards)) {
+        prevCountsRef.current[color] = count;
+      }
+      return;
+    }
+
+    for (const [color, count] of Object.entries(player.cards)) {
+      const prev = prevCountsRef.current[color] || 0;
+      if (count > prev) {
+        nextBumped[color] = true;
+        changed = true;
+      }
+      prevCountsRef.current[color] = count;
+    }
+
+    if (changed) {
+      setBumpedColors(prev => ({ ...prev, ...nextBumped }));
+      setTimeout(() => {
+        setBumpedColors(prev => {
+          const next = { ...prev };
+          for (const color of Object.keys(nextBumped)) {
+            delete next[color];
+          }
+          return next;
+        });
+      }, 700); // Match cardCountBump animation duration
+    }
+  }, [player.cards]);
+
   const cardList: { color: CardColor; count: number }[] = [
     { color: 'RED', count: player.cards['RED'] || 0 },
     { color: 'BLUE', count: player.cards['BLUE'] || 0 },
@@ -88,6 +128,7 @@ export const Hand: React.FC<HandProps> = ({ playerId, gameState, onHighlightCiti
             return (
               <div
                 key={color}
+                className={bumpedColors[color] ? 'card-bump-animate' : ''}
                 style={{
                   position: 'relative',
                   width: '56px',
@@ -105,7 +146,8 @@ export const Hand: React.FC<HandProps> = ({ playerId, gameState, onHighlightCiti
                   opacity: count > 0 ? 1 : 0.25,
                   transform: count > 0 ? 'scale(1)' : 'scale(0.95)',
                   transition: 'all 0.3s ease',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
+                  ['--bump-glow' as any]: hex
                 }}
               >
                 {/* Visual grid lines for playing card aesthetic */}

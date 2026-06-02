@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGameSocket } from './hooks/useGameSocket.js';
 import { Lobby } from './components/Lobby.js';
 import { Board } from './components/Board.js';
@@ -6,7 +6,7 @@ import { Hand } from './components/Hand.js';
 import { Deck } from './components/Deck.js';
 import { Scoreboard } from './components/Scoreboard.js';
 import { HistoryLog } from './components/HistoryLog.js';
-import { AlertCircle, LogOut, Radio, Trophy, ArrowRight } from 'lucide-react';
+import { AlertCircle, LogOut, Radio, Trophy, ArrowRight, Sparkles, Layers, Compass } from 'lucide-react';
 import './App.css';
 
 function App() {
@@ -38,6 +38,58 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [error]);
+
+  const [latestAction, setLatestAction] = useState<string | null>(null);
+  const historyLengthRef = useRef<number>(0);
+
+  // Monitor game history for action feedback toasts
+  useEffect(() => {
+    if (!gameState || !gameState.history) return;
+    const history = gameState.history;
+    
+    // First load: just sync length so we don't display old actions
+    if (historyLengthRef.current === 0) {
+      historyLengthRef.current = history.length;
+      return;
+    }
+
+    if (history.length > historyLengthRef.current) {
+      const lastItem = history[history.length - 1];
+      // Filter out low-importance/lobby history entries
+      const isLobbyLog = 
+        lastItem.includes('Room created') || 
+        lastItem.includes('joined the room') || 
+        lastItem.includes('is ready') || 
+        lastItem.includes('is not ready') || 
+        lastItem.includes('Map selected');
+
+      if (!isLobbyLog) {
+        setLatestAction(lastItem);
+      }
+      historyLengthRef.current = history.length;
+    }
+  }, [gameState?.history]);
+
+  // Clear toast after its animation completes (4s)
+  useEffect(() => {
+    if (latestAction) {
+      const timer = setTimeout(() => setLatestAction(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [latestAction]);
+
+  const getToastIcon = (text: string) => {
+    if (text.includes('claimed route')) {
+      return <Sparkles size={16} color="#fbbf24" style={{ filter: 'drop-shadow(0 0 4px #fbbf24)' }} />;
+    }
+    if (text.includes('drew a card') || text.includes('drew a face-up')) {
+      return <Layers size={16} color="#3b82f6" />;
+    }
+    if (text.includes('destination tickets') || text.includes('selected')) {
+      return <Compass size={16} color="#a855f7" />;
+    }
+    return <Trophy size={16} color="#10b981" />;
+  };
 
   const activePlayer = gameState?.players[gameState.turnIndex];
   const isMyTurn = activePlayer?.id === playerId;
@@ -361,6 +413,14 @@ function App() {
         >
           🏆 Show Standings
         </button>
+      )}
+
+      {/* Floating Action Feedback Toasts */}
+      {latestAction && (
+        <div key={gameState.history.length} className="toast-notification">
+          {getToastIcon(latestAction)}
+          <span>{latestAction}</span>
+        </div>
       )}
     </div>
   );
