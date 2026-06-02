@@ -245,13 +245,23 @@ function replenishFaceUpCards(game: any) {
   // Count locomotives
   let locomotives = game.faceUpCards.filter((c: any) => c === 'LOCOMOTIVE').length;
   if (locomotives >= 3) {
-    game.history.push('3 or more locomotives face-up. Discarding and redealing face-up cards.');
-    // Put back/discard and draw 5 new
-    const oldFaceUp = game.faceUpCards;
-    game.faceUpCards = [];
-    if (!game.discardPile) game.discardPile = [];
-    game.discardPile.push(...oldFaceUp);
-    replenishFaceUpCards(game);
+    const totalNonLocomotives = [
+      ...game.deck,
+      ...(game.discardPile || []),
+      ...game.faceUpCards
+    ].filter(c => c !== 'LOCOMOTIVE').length;
+
+    if (totalNonLocomotives >= 3) {
+      game.history.push('3 or more locomotives face-up. Discarding and redealing face-up cards.');
+      // Put back/discard and draw 5 new
+      const oldFaceUp = game.faceUpCards;
+      game.faceUpCards = [];
+      if (!game.discardPile) game.discardPile = [];
+      game.discardPile.push(...oldFaceUp);
+      replenishFaceUpCards(game);
+    } else {
+      game.history.push('3 or more locomotives face-up, but not enough colored cards remain to redeal. Bypassing redeal.');
+    }
   }
 }
 
@@ -336,7 +346,11 @@ export function drawTrainCard(roomId: string, playerId: string, index: number): 
   }
 
   // Check if turn is over
-  if (game.drawCountThisTurn >= 2) {
+  const totalCardsAvailable = game.deck.length + (game.discardPile?.length || 0) + game.faceUpCards.length;
+  if (game.drawCountThisTurn >= 2 || totalCardsAvailable === 0) {
+    if (game.drawCountThisTurn < 2 && totalCardsAvailable === 0) {
+      game.history.push('No more train cards available in deck or face-up. Ending turn early.');
+    }
     endTurn(game);
   }
 
