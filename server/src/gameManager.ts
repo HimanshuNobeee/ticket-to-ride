@@ -346,10 +346,10 @@ export function drawTrainCard(roomId: string, playerId: string, index: number): 
   }
 
   // Check if turn is over
-  const totalCardsAvailable = game.deck.length + (game.discardPile?.length || 0) + game.faceUpCards.length;
-  if (game.drawCountThisTurn >= 2 || totalCardsAvailable === 0) {
-    if (game.drawCountThisTurn < 2 && totalCardsAvailable === 0) {
-      game.history.push('No more train cards available in deck or face-up. Ending turn early.');
+  const validCardsForSecondDraw = game.deck.length + (game.discardPile?.length || 0) + game.faceUpCards.filter((c: any) => c !== 'LOCOMOTIVE').length;
+  if (game.drawCountThisTurn >= 2 || (game.drawCountThisTurn === 1 && validCardsForSecondDraw === 0)) {
+    if (game.drawCountThisTurn < 2) {
+      game.history.push('No more valid train cards available to draw. Ending turn early.');
     }
     endTurn(game);
   }
