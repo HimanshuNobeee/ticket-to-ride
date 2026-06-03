@@ -13,9 +13,19 @@ import {
   USA_ROUTES,
   USA_DESTINATION_TICKETS
 } from './usaMapData.js';
+import { query } from './db.js';
 
-// Global map of active game states key=roomId
-const games: Record<string, GameState & { routes: Route[]; drawCountThisTurn: number; pendingTickets: Record<string, DestinationTicket[]>; discardPile: CardColor[] }> = {};
+// Define the full active game state structure
+export type ActiveGame = GameState & { 
+  routes: Route[]; 
+  drawCountThisTurn: number; 
+  pendingTickets: Record<string, DestinationTicket[]>; 
+  discardPile: CardColor[];
+  lastRoundTurnsLeft?: number;
+};
+
+// Global map of active game states key=roomId (used as a memory cache)
+const games: Record<string, ActiveGame> = {};
 
 // Helper to shuffle array
 function shuffle<T>(array: T[]): T[] {
@@ -27,7 +37,7 @@ function shuffle<T>(array: T[]): T[] {
   return arr;
 }
 
-function checkAndRecycleDeck(game: any) {
+function checkAndRecycleDeck(game: ActiveGame) {
   if (game.deck.length === 0 && game.discardPile && game.discardPile.length > 0) {
     game.deck = shuffle([...game.discardPile]);
     game.discardPile = [];
@@ -76,20 +86,53 @@ function createPlayer(id: string, name: string, color: string): Player {
   };
 }
 
-export function getGame(roomId: string) {
-  return games[roomId.toUpperCase()];
+// Fetch game from memory or database
+export async function getGame(roomId: string): Promise<ActiveGame | null> {
+  const code = roomId.toUpperCase();
+  if (games[code]) {
+    return games[code];
+  }
+
+  try {
+    const res = await query('SELECT game_state FROM games WHERE room_id = $1', [code]);
+    if (res.rows && res.rows.length > 0) {
+      const state = res.rows[0].game_state as ActiveGame;
+      games[code] = state;
+      return state;
+    }
+  } catch (err) {
+    console.error(`Error loading game ${code} from database:`, err);
+  }
+  return null;
 }
 
-export function createRoom(roomId: string): GameState {
+// Save game to memory and database
+export async function saveGame(roomId: string, game: ActiveGame) {
   const code = roomId.toUpperCase();
-  games[code] = {
+  games[code] = game;
+  try {
+    await query(
+      `INSERT INTO games (room_id, game_state, updated_at) 
+       VALUES ($1, $2, CURRENT_TIMESTAMP) 
+       ON CONFLICT (room_id) 
+       DO UPDATE SET game_state = $2, updated_at = CURRENT_TIMESTAMP`,
+      [code, JSON.stringify(game)]
+    );
+  } catch (err) {
+    console.error(`Error saving game ${code} to database:`, err);
+  }
+}
+
+export async function createRoom(roomId: string): Promise<ActiveGame> {
+  const code = roomId.toUpperCase();
+  const game: ActiveGame = {
     roomId: code,
     players: [],
     deck: [],
     faceUpCards: [],
     destinationDeck: [],
     turnIndex: 0,
-    gameStage: 'LOBBY',
+    gameStage: 'LOBBY' as const,
     lastPlayerId: null,
     winnerId: null,
     longestRoutePlayerId: null,
@@ -98,17 +141,24 @@ export function createRoom(roomId: string): GameState {
     drawCountThisTurn: 0,
     pendingTickets: {},
     discardPile: [],
-    mapType: 'EXPRESS_USA'
+    mapType: 'EXPRESS_USA' as const
   };
-  return games[code];
+  await saveGame(code, game);
+  return game;
 }
 
-export function deleteRoom(roomId: string) {
-  delete games[roomId.toUpperCase()];
+export async function deleteRoom(roomId: string) {
+  const code = roomId.toUpperCase();
+  delete games[code];
+  try {
+    await query('DELETE FROM games WHERE room_id = $1', [code]);
+  } catch (err) {
+    console.error(`Error deleting game ${code} from database:`, err);
+  }
 }
 
-export function setMapType(roomId: string, mapType: 'CLASSIC_USA' | 'EXPRESS_USA'): GameState | null {
-  const game = getGame(roomId);
+export async function setMapType(roomId: string, mapType: 'CLASSIC_USA' | 'EXPRESS_USA'): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
   if (!game || game.gameStage !== 'LOBBY') return null;
   game.mapType = mapType;
   if (mapType === 'CLASSIC_USA') {
@@ -117,11 +167,12 @@ export function setMapType(roomId: string, mapType: 'CLASSIC_USA' | 'EXPRESS_USA
     game.routes = JSON.parse(JSON.stringify(INITIAL_ROUTES));
   }
   game.history.push(`Map selected: ${mapType === 'CLASSIC_USA' ? 'Classic USA Map' : 'Express USA Map'}.`);
+  await saveGame(roomId, game);
   return game;
 }
 
-export function joinRoom(roomId: string, playerId: string, playerName: string, playerColor: string): GameState | null {
-  const game = getGame(roomId);
+export async function joinRoom(roomId: string, playerId: string, playerName: string, playerColor: string): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
   if (!game) return null;
   if (game.gameStage !== 'LOBBY' && !game.players.some(p => p.id === playerId)) {
     // Game already started and player is not reconnecting
@@ -132,6 +183,7 @@ export function joinRoom(roomId: string, playerId: string, playerName: string, p
   if (existingPlayer) {
     existingPlayer.isConnected = true;
     game.history.push(`${existingPlayer.name} reconnected.`);
+    await saveGame(roomId, game);
     return game;
   }
 
@@ -150,11 +202,12 @@ export function joinRoom(roomId: string, playerId: string, playerName: string, p
   const newPlayer = createPlayer(playerId, playerName, finalColor);
   game.players.push(newPlayer);
   game.history.push(`${playerName} joined the room with train color: ${finalColor}.`);
+  await saveGame(roomId, game);
   return game;
 }
 
-export function leaveRoom(roomId: string, playerId: string): GameState | null {
-  const game = getGame(roomId);
+export async function leaveRoom(roomId: string, playerId: string): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
   if (!game) return null;
 
   const player = game.players.find(p => p.id === playerId);
@@ -167,23 +220,25 @@ export function leaveRoom(roomId: string, playerId: string): GameState | null {
     player.isConnected = false;
     game.history.push(`${player.name} disconnected.`);
   }
+  await saveGame(roomId, game);
   return game;
 }
 
-export function setPlayerReady(roomId: string, playerId: string, isReady: boolean): GameState | null {
-  const game = getGame(roomId);
+export async function setPlayerReady(roomId: string, playerId: string, isReady: boolean): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
   if (!game) return null;
   const player = game.players.find(p => p.id === playerId);
   if (player) {
     player.isReady = isReady;
     game.history.push(`${player.name} is ${isReady ? 'ready' : 'not ready'}.`);
+    await saveGame(roomId, game);
   }
   return game;
 }
 
 // Start the game!
-export function startGame(roomId: string): GameState | null {
-  const game = getGame(roomId);
+export async function startGame(roomId: string): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
   if (!game || game.players.length < 2) return null;
 
   game.gameStage = 'INITIAL_DRAW';
@@ -226,11 +281,12 @@ export function startGame(roomId: string): GameState | null {
   replenishFaceUpCards(game);
 
   game.history.push('Game started! Players selecting initial destination tickets.');
+  await saveGame(roomId, game);
   return game;
 }
 
 // Discard/redraw face-up cards if 3+ are Locomotives
-function replenishFaceUpCards(game: any) {
+function replenishFaceUpCards(game: ActiveGame) {
   while (game.faceUpCards.length < 5) {
     checkAndRecycleDeck(game);
     if (game.deck.length === 0) break; // No cards left anywhere
@@ -266,8 +322,8 @@ function replenishFaceUpCards(game: any) {
 }
 
 // Select destination tickets during initial draw
-export function selectInitialTickets(roomId: string, playerId: string, keptTicketIds: string[]): GameState | null {
-  const game = getGame(roomId);
+export async function selectInitialTickets(roomId: string, playerId: string, keptTicketIds: string[]): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
   if (!game || game.gameStage !== 'INITIAL_DRAW') return null;
 
   const player = game.players.find(p => p.id === playerId);
@@ -296,12 +352,13 @@ export function selectInitialTickets(roomId: string, playerId: string, keptTicke
     game.history.push('All players selected tickets. The game begins!');
   }
 
+  await saveGame(roomId, game);
   return game;
 }
 
 // Draw a train card (either from face-up or face-down deck)
-export function drawTrainCard(roomId: string, playerId: string, index: number): GameState | null {
-  const game = getGame(roomId);
+export async function drawTrainCard(roomId: string, playerId: string, index: number): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
   if (!game || (game.gameStage !== 'PLAYING' && game.gameStage !== 'LAST_ROUND')) return null;
 
   const activePlayer = game.players[game.turnIndex];
@@ -354,12 +411,13 @@ export function drawTrainCard(roomId: string, playerId: string, index: number): 
     endTurn(game);
   }
 
+  await saveGame(roomId, game);
   return game;
 }
 
 // Draw destination tickets
-export function drawDestinationTicketsAction(roomId: string, playerId: string): GameState | null {
-  const game = getGame(roomId);
+export async function drawDestinationTicketsAction(roomId: string, playerId: string): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
   if (!game || (game.gameStage !== 'PLAYING' && game.gameStage !== 'LAST_ROUND')) return null;
 
   const activePlayer = game.players[game.turnIndex];
@@ -378,13 +436,13 @@ export function drawDestinationTicketsAction(roomId: string, playerId: string): 
   game.pendingTickets[playerId] = tickets;
   game.history.push(`${activePlayer.name} drew destination tickets to choose from.`);
 
-  // Temporarily block turn advancement until they select
+  await saveGame(roomId, game);
   return game;
 }
 
 // Select tickets from the middle of the game
-export function chooseDestinationTickets(roomId: string, playerId: string, keptTicketIds: string[]): GameState | null {
-  const game = getGame(roomId);
+export async function chooseDestinationTickets(roomId: string, playerId: string, keptTicketIds: string[]): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
   if (!game) return null;
 
   const player = game.players.find(p => p.id === playerId);
@@ -408,17 +466,18 @@ export function chooseDestinationTickets(roomId: string, playerId: string, keptT
   // Complete turn
   endTurn(game);
 
+  await saveGame(roomId, game);
   return game;
 }
 
 // Claim a route
-export function claimRouteAction(
+export async function claimRouteAction(
   roomId: string,
   playerId: string,
   routeId: string,
   cardColorToUse: CardColor
-): GameState | null {
-  const game = getGame(roomId);
+): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
   if (!game || (game.gameStage !== 'PLAYING' && game.gameStage !== 'LAST_ROUND')) return null;
 
   const activePlayer = game.players[game.turnIndex];
@@ -511,11 +570,12 @@ export function claimRouteAction(
   // Complete turn
   endTurn(game);
 
+  await saveGame(roomId, game);
   return game;
 }
 
 // Helper to transition turn
-function endTurn(game: any) {
+function endTurn(game: ActiveGame) {
   game.drawCountThisTurn = 0;
 
   if (game.gameStage === 'LAST_ROUND') {
@@ -536,7 +596,7 @@ function endTurn(game: any) {
 }
 
 // End game scoring and calculations
-function endGame(game: any) {
+function endGame(game: ActiveGame) {
   game.gameStage = 'GAME_OVER';
   game.history.push('Game Over! Calculating final scores...');
 
