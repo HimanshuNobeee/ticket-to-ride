@@ -199,6 +199,22 @@ export async function joinRoom(roomId: string, playerId: string, playerName: str
   return game;
 }
 
+async function skipDisconnectedTurns(game: ActiveGame) {
+  let attempts = 0;
+  while (attempts < game.players.length && (game.gameStage === 'PLAYING' || game.gameStage === 'LAST_ROUND')) {
+    endTurn(game);
+    if (game.gameStage !== 'PLAYING' && game.gameStage !== 'LAST_ROUND') {
+      break;
+    }
+    const nextPlayer = game.players[game.turnIndex];
+    if (nextPlayer && nextPlayer.isConnected) {
+      game.history.push(`It is now ${nextPlayer.name}'s turn.`);
+      break;
+    }
+    attempts++;
+  }
+}
+
 export async function leaveRoom(roomId: string, playerId: string): Promise<ActiveGame | null> {
   const game = await getGame(roomId);
   if (!game) return null;
@@ -212,6 +228,14 @@ export async function leaveRoom(roomId: string, playerId: string): Promise<Activ
   } else {
     player.isConnected = false;
     game.history.push(`${player.name} disconnected.`);
+
+    if (game.gameStage === 'PLAYING' || game.gameStage === 'LAST_ROUND') {
+      const activePlayer = game.players[game.turnIndex];
+      if (activePlayer && activePlayer.id === playerId) {
+        game.history.push(`It was ${player.name}'s turn. Skipping turn due to disconnection.`);
+        await skipDisconnectedTurns(game);
+      }
+    }
   }
   await saveGame(roomId, game);
   return game;
