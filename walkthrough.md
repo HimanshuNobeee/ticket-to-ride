@@ -87,14 +87,14 @@ We recently updated the application layout, colors, and game logic to maximize u
   - **The Issue**: When all train cards are drawn (deck, discard pile, and face-up slots are completely empty), a player who has only drawn one card cannot draw a second card and becomes locked in their turn forever. Similarly, if the only remaining cards in the supply are face-up locomotives and the player has already drawn one card, they are forbidden by the rules from drawing a face-up locomotive, getting them stuck.
   - **The Solution**: In `drawTrainCard` inside gameManager.ts, we now calculate the total `validCardsForSecondDraw` (excluding face-up locomotives since they are illegal to draw on a second turn). If the player draws their first card and there are no valid cards left for their second draw (`validCardsForSecondDraw === 0`), the server logs this event and automatically ends their turn, transitioning the turn to the next player.
 
-### 13. Game State Persistence (Handling Server Restarts)
+### 13. Game State Persistence (Firebase Firestore Integration)
 - **The Issue**: On Render's free tier, the server spins down during inactivity or restarts when new code is deployed. Because game states were stored only in the server's memory (`const games = {}`), any restart instantly wiped all active lobbies and players lost all their current game progress.
 - **The Solution**: 
-  - Created a database client in [db.ts](file:///Users/coolhim/Documents/antigravity/radiant-pasteur/server/src/db.ts) that initializes a PostgreSQL connection. 
-  - If a database is set up (via `DATABASE_URL`), it creates a `games` table and reads/writes all game state updates asynchronously. 
-  - To support this database layer, all game actions in [gameManager.ts](file:///Users/coolhim/Documents/antigravity/radiant-pasteur/server/src/gameManager.ts) and event listeners in [server.ts](file:///Users/coolhim/Documents/antigravity/radiant-pasteur/server/src/server.ts) were refactored using `async`/`await`.
-  - On restart, when a player attempts to rejoin a lobby, the server automatically recovers the active game state from the PostgreSQL database, meaning no progress is lost.
-  - **In-Memory Fallback**: For ease of local development, if no `DATABASE_URL` is configured in the environment, the server automatically prints a warning and falls back to a mock in-memory database, so you don't need to run PostgreSQL to test locally!
+  - Integrated the Firebase Admin SDK (`firebase-admin`) on the Node.js server.
+  - Implemented database client helper functions in [db.ts](file:///Users/coolhim/Documents/antigravity/radiant-pasteur/server/src/db.ts) to read, write, and delete game state documents from a `games` collection in Cloud Firestore.
+  - Refactored all game action validators in [gameManager.ts](file:///Users/coolhim/Documents/antigravity/radiant-pasteur/server/src/gameManager.ts) and Socket.io handlers in [server.ts](file:///Users/coolhim/Documents/antigravity/radiant-pasteur/server/src/server.ts) to run asynchronously using `async`/`await`.
+  - When the server restarts and players reconnect, their socket automatically recovers the active game state from Firestore, preserving their progress.
+  - **In-Memory & Local Fallback**: For easy local development, if no Firebase credentials (`FIREBASE_SERVICE_ACCOUNT` env var or `firebase-service-account.json` file) are detected, the server prints a warning and falls back to a mock in-memory database, so you don't need a live database config to develop locally!
 
 ---
 

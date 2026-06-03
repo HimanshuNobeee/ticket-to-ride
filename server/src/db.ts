@@ -1,76 +1,96 @@
-import pg from 'pg';
-const { Pool } = pg;
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import fs from 'fs';
+import path from 'path';
 
-const hasDb = !!process.env.DATABASE_URL;
+let db: any = null;
+const serviceAccountPath = path.resolve(process.cwd(), 'firebase-service-account.json');
 
-let pool: any = null;
-
-if (hasDb) {
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false // Required for Render/Supabase connection
-    }
-  });
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  try {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    initializeApp({
+      credential: cert(serviceAccount)
+    });
+    db = getFirestore();
+    console.log("✅ Firebase Firestore initialized using service account environment variable.");
+  } catch (err) {
+    console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT:", err);
+  }
+} else if (fs.existsSync(serviceAccountPath)) {
+  try {
+    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+    initializeApp({
+      credential: cert(serviceAccount)
+    });
+    db = getFirestore();
+    console.log("✅ Firebase Firestore initialized using local service account file.");
+  } catch (err) {
+    console.error("Failed to load local service account file:", err);
+  }
 } else {
-  console.warn("⚠️ DATABASE_URL is not set in environment variables. Running in-memory fallback mode (game data will not persist on restart).");
+  console.warn("⚠️ No Firebase credentials found (neither FIREBASE_SERVICE_ACCOUNT nor firebase-service-account.json). Running in-memory fallback mode.");
 }
 
-export async function query(text: string, params?: any[]) {
-  if (hasDb) {
-    return pool.query(text, params);
-  } else {
-    return mockQuery(text, params);
+// In-memory fallback database
+const memoryDb: Record<string, any> = {};
+
+export async function getGameFromDb(roomId: string): Promise<any | null> {
+  const code = roomId.toUpperCase();
+  if (db) {
+    try {
+      const docRef = db.collection('games').doc(code);
+      const doc = await docRef.get();
+      return doc.exists ? doc.data() : null;
+    } catch (err) {
+      console.error(`Error reading room ${code} from Firestore:`, err);
+    }
   }
+  
+  // Fallback to memory
+  return memoryDb[code] || null;
 }
 
-// Simple in-memory fallback mock database
-const memoryDb: Record<string, string> = {};
-
-async function mockQuery(text: string, params?: any[]): Promise<any> {
-  const normalizedText = text.trim().replace(/\s+/g, ' ').toUpperCase();
-  
-  if (normalizedText.includes('CREATE TABLE')) {
-    return { rows: [] };
-  }
-  
-  if (normalizedText.includes('SELECT GAME_STATE FROM GAMES')) {
-    const roomId = params ? params[0] : null;
-    if (roomId && memoryDb[roomId]) {
-      return { rows: [{ game_state: JSON.parse(memoryDb[roomId]) }] };
+export async function saveGameToDb(roomId: string, gameState: any): Promise<void> {
+  const code = roomId.toUpperCase();
+  if (db) {
+    try {
+      const docRef = db.collection('games').doc(code);
+      // Strip out the updatedAt from the stored game state itself and save it
+      const { updatedAt, ...cleanState } = gameState;
+      await docRef.set({
+        ...cleanState,
+        updatedAt: new Date().toISOString()
+      });
+      return;
+    } catch (err) {
+      console.error(`Error saving room ${code} to Firestore:`, err);
     }
-    return { rows: [] };
   }
   
-  if (normalizedText.includes('INSERT INTO GAMES')) {
-    const roomId = params ? params[0] : null;
-    const gameState = params ? params[1] : null;
-    if (roomId && gameState) {
-      memoryDb[roomId] = gameState;
-    }
-    return { rows: [] };
-  }
-
-  if (normalizedText.includes('DELETE FROM GAMES')) {
-    const roomId = params ? params[0] : null;
-    if (roomId) {
-      delete memoryDb[roomId];
-    }
-    return { rows: [] };
-  }
-  
-  return { rows: [] };
+  // Fallback to memory
+  memoryDb[code] = gameState;
 }
 
+export async function deleteGameFromDb(roomId: string): Promise<void> {
+  const code = roomId.toUpperCase();
+  if (db) {
+    try {
+      const docRef = db.collection('games').doc(code);
+      await docRef.delete();
+      return;
+    } catch (err) {
+      console.error(`Error deleting room ${code} from Firestore:`, err);
+    }
+  }
+  
+  // Fallback to memory
+  delete memoryDb[code];
+}
+
+// Keep initDb so server.ts startup code remains unmodified
 export async function initDb() {
-  await query(`
-    CREATE TABLE IF NOT EXISTS games (
-      room_id VARCHAR(10) PRIMARY KEY,
-      game_state JSONB NOT NULL,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-  if (hasDb) {
-    console.log("✅ PostgreSQL Database initialized successfully.");
+  if (db) {
+    console.log("✅ Cloud Firestore database connection active.");
   }
 }

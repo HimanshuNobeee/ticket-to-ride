@@ -13,7 +13,7 @@ import {
   USA_ROUTES,
   USA_DESTINATION_TICKETS
 } from './usaMapData.js';
-import { query } from './db.js';
+import { getGameFromDb, saveGameToDb, deleteGameFromDb } from './db.js';
 
 // Define the full active game state structure
 export type ActiveGame = GameState & { 
@@ -94,11 +94,10 @@ export async function getGame(roomId: string): Promise<ActiveGame | null> {
   }
 
   try {
-    const res = await query('SELECT game_state FROM games WHERE room_id = $1', [code]);
-    if (res.rows && res.rows.length > 0) {
-      const state = res.rows[0].game_state as ActiveGame;
-      games[code] = state;
-      return state;
+    const state = await getGameFromDb(code);
+    if (state) {
+      games[code] = state as ActiveGame;
+      return games[code];
     }
   } catch (err) {
     console.error(`Error loading game ${code} from database:`, err);
@@ -111,13 +110,7 @@ export async function saveGame(roomId: string, game: ActiveGame) {
   const code = roomId.toUpperCase();
   games[code] = game;
   try {
-    await query(
-      `INSERT INTO games (room_id, game_state, updated_at) 
-       VALUES ($1, $2, CURRENT_TIMESTAMP) 
-       ON CONFLICT (room_id) 
-       DO UPDATE SET game_state = $2, updated_at = CURRENT_TIMESTAMP`,
-      [code, JSON.stringify(game)]
-    );
+    await saveGameToDb(code, game);
   } catch (err) {
     console.error(`Error saving game ${code} to database:`, err);
   }
@@ -151,7 +144,7 @@ export async function deleteRoom(roomId: string) {
   const code = roomId.toUpperCase();
   delete games[code];
   try {
-    await query('DELETE FROM games WHERE room_id = $1', [code]);
+    await deleteGameFromDb(code);
   } catch (err) {
     console.error(`Error deleting game ${code} from database:`, err);
   }
