@@ -6,7 +6,7 @@ import { Hand } from './components/Hand.js';
 import { Deck } from './components/Deck.js';
 import { Scoreboard } from './components/Scoreboard.js';
 import { HistoryLog } from './components/HistoryLog.js';
-import { AlertCircle, LogOut, Radio, Trophy, ArrowRight, Sparkles, Layers, Compass } from 'lucide-react';
+import { AlertCircle, LogOut, Radio, Trophy, ArrowRight, Sparkles, Layers, Compass, Maximize, Minimize } from 'lucide-react';
 import './App.css';
 
 function App() {
@@ -30,6 +30,55 @@ function App() {
     leaveRoom,
     setError
   } = useGameSocket();
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      const docEl = document.documentElement as any;
+      if (docEl.requestFullscreen) {
+        docEl.requestFullscreen().catch((err: any) => console.error(err));
+      } else if (docEl.webkitRequestFullscreen) {
+        docEl.webkitRequestFullscreen();
+      } else if (docEl.msRequestFullscreen) {
+        docEl.msRequestFullscreen();
+      }
+    } else {
+      const doc = document as any;
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen().catch((err: any) => console.error(err));
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      } else if (doc.msExitFullscreen) {
+        doc.msExitFullscreen();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   // Alert timer for autohiding messages
   useEffect(() => {
@@ -124,9 +173,20 @@ function App() {
   if (!gameState || gameState.gameStage === 'LOBBY') {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', paddingBottom: '40px' }}>
-        <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: isConnected ? '#10b981' : '#ef4444' }}>
-          <Radio size={14} className={isConnected ? 'pulse-glow' : ''} />
-          <span>{isConnected ? 'Server Online' : 'Connecting to Server...'}</span>
+        <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', alignItems: 'center', gap: '16px', zIndex: 100 }}>
+          <button
+            className="btn-secondary"
+            onClick={toggleFullscreen}
+            style={{ padding: '6px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="Toggle Fullscreen (F)"
+          >
+            {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: isConnected ? '#10b981' : '#ef4444' }}>
+            <Radio size={14} className={isConnected ? 'pulse-glow' : ''} />
+            <span>{isConnected ? 'Server Online' : 'Connecting to Server...'}</span>
+          </div>
         </div>
 
         <Lobby
@@ -189,6 +249,15 @@ function App() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button
+            className="btn-secondary"
+            onClick={toggleFullscreen}
+            style={{ padding: '6px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="Toggle Fullscreen (F)"
+          >
+            {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          </button>
           <button className="btn-secondary" onClick={leaveRoom} style={{ padding: '6px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <LogOut size={14} /> Leave Room
           </button>
