@@ -43,6 +43,7 @@ const io = new Server(httpServer, {
 
 const socketToPlayerMap: Record<string, { roomId: string; playerId: string }> = {};
 const roomDeletionTimeouts: Record<string, NodeJS.Timeout> = {};
+const ROOM_DELETION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours (86,400,000 ms)
 
 io.on('connection', (socket) => {
   console.log(`Socket connected: ${socket.id}`);
@@ -210,14 +211,14 @@ io.on('connection', (socket) => {
         if (game) {
           const activeCount = game.players.filter(p => p.isConnected).length;
           if (activeCount === 0) {
-            // Start a deletion timer for 60 seconds
+            // Start a deletion timer for 24 hours
             if (!roomDeletionTimeouts[roomId]) {
               roomDeletionTimeouts[roomId] = setTimeout(async () => {
                 await deleteRoom(roomId);
                 delete roomDeletionTimeouts[roomId];
-                console.log(`Room ${roomId} deleted after being empty for 60 seconds.`);
-              }, 60000);
-              console.log(`Room ${roomId} is empty. Scheduling deletion in 60s...`);
+                console.log(`Room ${roomId} deleted after being empty for 24 hours.`);
+              }, ROOM_DELETION_TIMEOUT);
+              console.log(`Room ${roomId} is empty. Scheduling deletion in 24 hours...`);
             }
           } else {
             io.to(roomId).emit('game-updated', game);

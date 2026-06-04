@@ -47,10 +47,10 @@ export const Deck: React.FC<DeckProps> = ({
   const pendingTickets = (gameState as any).pendingTickets?.[playerId] as DestinationTicket[] | undefined;
   const isInitialDraw = gameState.gameStage === 'INITIAL_DRAW';
 
-  // Pre-select all tickets when modal opens
+  // Keep tickets unselected when modal opens to avoid confusion
   useEffect(() => {
     if (pendingTickets) {
-      setSelectedTickets(pendingTickets.map(t => t.id));
+      setSelectedTickets([]);
     }
   }, [pendingTickets]);
 

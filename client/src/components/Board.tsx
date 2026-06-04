@@ -17,7 +17,7 @@ const getHexColor = (color: RouteColor): string => {
     case 'RED': return '#ef4444';
     case 'BLUE': return '#3b82f6';
     case 'GREEN': return '#10b981';
-    case 'YELLOW': return '#f59e0b';
+    case 'YELLOW': return '#eab308';
     case 'BLACK': return '#3f3f46';
     case 'ORANGE': return '#f97316';
     case 'WHITE': return '#e2e8f0';
