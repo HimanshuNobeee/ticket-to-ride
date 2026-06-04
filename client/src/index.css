@@ -224,7 +224,7 @@ h1, h2, h3, h4, h5, h6 {
 .ticket-drawer {
   position: fixed;
   top: 90px;
-  left: 20px;
+  right: 20px;
   width: 360px;
   max-width: calc(100vw - 40px);
   background: rgba(15, 23, 42, 0.95);
@@ -271,6 +271,7 @@ h1, h2, h3, h4, h5, h6 {
   }
   .ticket-drawer {
     left: 10px;
+    right: auto;
     top: 80px;
     width: calc(100vw - 20px);
     padding: 16px;

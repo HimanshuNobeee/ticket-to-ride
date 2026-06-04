@@ -191,7 +191,7 @@ export const Hand: React.FC<HandProps> = ({ playerId, gameState, onHighlightCiti
             No tickets drawn yet. You'll receive starting tickets once everyone is ready!
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px' }}>
             {player.destinationTickets.map(ticket => {
               const connected = isTicketConnected(playerRoutes, ticket);
 

@@ -268,7 +268,7 @@ export const Deck: React.FC<DeckProps> = ({
             <strong style={{ color: '#fff' }}>{isInitialDraw ? 2 : 1}</strong> ticket(s).
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {pendingTickets.map(ticket => {
               const isSelected = selectedTickets.includes(ticket.id);
               return (

@@ -135,7 +135,7 @@ export const Board: React.FC<BoardProps> = ({
   const [isPanning, setIsPanning] = useState(false);
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 });
   const startScreenPointRef = useRef({ x: 0, y: 0 });
-  const [isLocked, setIsLocked] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
 
   const isClassic = gameState.mapType === 'CLASSIC_USA';
   const activeCities = isClassic ? USA_CITIES : CITIES;
@@ -521,10 +521,10 @@ export const Board: React.FC<BoardProps> = ({
                   />
                   {/* Shadow Text label */}
                   <text
-                    y="-11"
+                    y="-13"
                     textAnchor="middle"
                     fill="#000000"
-                    fontSize="10"
+                    fontSize="12"
                     fontWeight="800"
                     style={{ pointerEvents: 'none', opacity: 0.8 }}
                   >
@@ -532,10 +532,10 @@ export const Board: React.FC<BoardProps> = ({
                   </text>
                   {/* Foreground Text label */}
                   <text
-                    y="-11"
+                    y="-13"
                     textAnchor="middle"
                     fill={isHighlighted ? '#fbbf24' : '#ffffff'}
-                    fontSize="10"
+                    fontSize="12"
                     fontWeight={isHighlighted ? '700' : '500'}
                     style={{ pointerEvents: 'none', fontFamily: 'Outfit, sans-serif' }}
                   >
