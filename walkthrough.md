@@ -145,6 +145,11 @@ We recently updated the application layout, colors, and game logic to maximize u
   - The board map routes and cards color has been optimized from an orangish Amber (`#f59e0b`) to the standard Tailwind Yellow (`#eab308`) with matching glowing styling variables. This unifies visual colors across the board, hand, and deck.
 - **Unselected Ticket Selection Mode**:
   - Destination tickets drawn by players now start as unselected by default inside the draft drawer modal instead of being preselected. This prevents user confusion and accidental turn confirmations.
+- **Youtube-Style Fullscreen Mode**:
+  - Added a dedicated full-screen button at the top-right of both the main lobby/menu screen and the active-game header navigation bar.
+  - Features standard full-screen capabilities matching modern media players.
+  - Keyboard Shortcut: Players can press the `F` key to toggle fullscreen mode instantly. Inputs are bypassed when typing in name/lobby code text fields.
+
 
 ### 12. Locomotive Infinite Loop & Dry Deck Stall Fixes
 - **Locomotive Infinite Loop Prevention**:
