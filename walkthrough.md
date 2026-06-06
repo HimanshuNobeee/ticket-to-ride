@@ -148,6 +148,10 @@ We recently updated the application layout, colors, and game logic to maximize u
   - Added a dedicated full-screen button at the top-right of both the main lobby/menu screen and the active-game header navigation bar.
   - Features standard full-screen capabilities matching modern media players.
   - Keyboard Shortcut: Players can press the `F` key to toggle fullscreen mode instantly. Inputs are bypassed when typing in name/lobby code text fields.
+- **Owned Destination Ticket City Highlights**:
+  - Cities corresponding to the active player's owned destination tickets now remain highlighted with a subtle dashed ring on the board map.
+  - **Dynamic Completion Status**: The highlight ring is color-coded to indicate status. It glows **green** if all tickets connecting to that city are completed, and glows **purple** if there is still an incomplete ticket associated with it. This provides instant visual feedback of game objectives.
+
 
 
 ### 12. Locomotive Infinite Loop & Dry Deck Stall Fixes
