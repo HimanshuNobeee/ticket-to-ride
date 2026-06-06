@@ -170,6 +170,14 @@ We recently updated the application layout, colors, and game logic to maximize u
   - Endpoints (city circles) for owned tickets are reduced to a radius of `14px` and rendered as a fixed, steady highlight (no breathing/pulsing animation) so they are easy to see without being distracting.
   - Highlights remain color-coded (gold for incomplete, green for completed) to track route-completion status clearly.
 
+### 14. Hall of Fame Leaderboard (Top 10 High Scores)
+- **Top 10 High Scores Tracking**: Added database schema and API endpoints to log player high scores alongside their completed destination ticket counts upon game completion.
+- **Unique Name Mapping (Personal Best)**: High scores are mapped uniquely by player name (case-insensitive). If a player plays multiple matches or on different systems with the same name, they only occupy a single slot corresponding to their personal best score.
+- **Lobby Homepage Layout**: Redesigned the entrance homepage to show a side-by-side split screen on desktop (stacking vertically on mobile):
+  - Left: The clean, glassmorphic Create/Join game cards.
+  - Right: A premium, glassmorphic **Hall of Fame** table displaying the top 10 high scores with rank indicators (🥇, 🥈, 🥉 for the top 3 spots), player names, completed ticket counts (with green checkmarks), and high score points.
+  - Includes loading spinner animations and clean placeholder elements for empty high score states.
+
 ---
 
 ## 🚀 Deployed Production Environments
