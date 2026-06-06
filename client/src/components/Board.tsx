@@ -543,15 +543,15 @@ export const Board: React.FC<BoardProps> = ({
                   {/* Glowing Ring for player's owned destination tickets (bright neon green if completed, fuchsia if incomplete) */}
                   {hasMyTicket && !isHighlighted && (
                     <circle
-                      r="14"
+                      r="15"
                       fill="none"
                       stroke={isAllCompleted ? '#00ff9d' : '#d946ef'}
-                      strokeWidth="2.2"
+                      strokeWidth="3.8"
                       strokeDasharray="4 3"
                       className="animate-svg-pulse"
                       style={{
-                        filter: `drop-shadow(0 0 6px ${isAllCompleted ? '#00ff9d' : '#d946ef'})`,
-                        opacity: 0.95
+                        filter: `drop-shadow(0 0 8px ${isAllCompleted ? '#00ff9d' : '#d946ef'})`,
+                        opacity: 1.0
                       }}
                     />
                   )}
