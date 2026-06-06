@@ -150,7 +150,8 @@ We recently updated the application layout, colors, and game logic to maximize u
   - Keyboard Shortcut: Players can press the `F` key to toggle fullscreen mode instantly. Inputs are bypassed when typing in name/lobby code text fields.
 - **Owned Destination Ticket City Highlights**:
   - Cities corresponding to the active player's owned destination tickets now remain highlighted with a highly visible, sparkling dashed ring on the board map.
-  - **Dynamic Completion Status & Animation**: The highlight ring is color-coded using bright neon colors and pulses dynamically using a custom heartbeat keyframe animation. It glows **neon green** (`#00ff9d`) if all tickets connecting to that city are completed, and glows **neon fuchsia** (`#d946ef`) if there is still an incomplete ticket associated with it, providing a beautiful, sparkling layout of game objectives.
+  - **Dynamic Completion Status & Animation**: The highlight ring is color-coded using bright neon colors and pulses dynamically using a custom heartbeat keyframe animation. It glows **neon green** (`#00ff9d`) if all tickets connecting to that city are completed, and glows **neon fuchsia** (`#d946ef`) if there is still an incomplete ticket associated with it. To ensure high visibility on the map, this highlight has been made thicker (`3.8px` stroke width) and wider (`15px` radius), providing a beautiful and clear layout of game objectives.
+
 
 
 
