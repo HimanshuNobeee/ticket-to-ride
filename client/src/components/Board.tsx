@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CITIES } from '../utils/gameData.js';
-import type { GameState, Route, CardColor, RouteColor } from '../utils/gameData.js';
+import type { GameState, Route, CardColor, RouteColor, DestinationTicket } from '../utils/gameData.js';
 import { USA_CITIES } from '../utils/usaMapData.js';
 import { Sparkles, MapPin, ZoomIn, ZoomOut, RotateCcw, Lock, Unlock } from 'lucide-react';
 
@@ -67,6 +67,33 @@ const getRouteSegments = (x1: number, y1: number, x2: number, y2: number, count:
   }
 
   return segments;
+};
+
+const isTicketConnected = (playerRoutes: Route[], ticket: DestinationTicket): boolean => {
+  const adj: Record<string, string[]> = {};
+  for (const r of playerRoutes) {
+    if (!adj[r.city1]) adj[r.city1] = [];
+    if (!adj[r.city2]) adj[r.city2] = [];
+    adj[r.city1].push(r.city2);
+    adj[r.city2].push(r.city1);
+  }
+
+  const visited = new Set<string>();
+  const queue = [ticket.city1];
+  visited.add(ticket.city1);
+
+  while (queue.length > 0) {
+    const curr = queue.shift()!;
+    if (curr === ticket.city2) return true;
+    for (const neighbor of (adj[curr] || [])) {
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push(neighbor);
+      }
+    }
+  }
+
+  return false;
 };
 
 export const Board: React.FC<BoardProps> = ({
@@ -142,6 +169,22 @@ export const Board: React.FC<BoardProps> = ({
   const self = gameState.players.find(p => p.id === playerId);
   const activePlayer = gameState.players[gameState.turnIndex];
   const isMyTurn = activePlayer?.id === playerId && (gameState.gameStage === 'PLAYING' || gameState.gameStage === 'LAST_ROUND');
+
+  // Get active player's claimed routes and ticket connection statuses
+  const playerRoutes = gameState.routes.filter(r => r.claimedBy === playerId);
+  const cityTicketStatuses: Record<string, { completed: boolean }[]> = {};
+  if (self?.destinationTickets) {
+    self.destinationTickets.forEach(ticket => {
+      const isConnected = isTicketConnected(playerRoutes, ticket);
+      const cities = [ticket.city1, ticket.city2];
+      cities.forEach(cityName => {
+        if (!cityTicketStatuses[cityName]) {
+          cityTicketStatuses[cityName] = [];
+        }
+        cityTicketStatuses[cityName].push({ completed: isConnected });
+      });
+    });
+  }
 
   // Choose dimension constraints based on the active map type
   // Classic USA is wider/taller (1220x920) than Express (1020x620)
@@ -478,6 +521,9 @@ export const Board: React.FC<BoardProps> = ({
             {/* Draw City Pins */}
             {activeCities.map(city => {
               const isHighlighted = highlightedCities.includes(city.name);
+              const statuses = cityTicketStatuses[city.name];
+              const hasMyTicket = !!statuses;
+              const isAllCompleted = hasMyTicket && statuses.every(s => s.completed);
 
               return (
                 <g key={city.name} transform={`translate(${city.x + 10}, ${city.y + 10})`}>
@@ -491,6 +537,20 @@ export const Board: React.FC<BoardProps> = ({
                       style={{
                         filter: 'drop-shadow(0 0 6px #fbbf24)',
                         animation: 'pulse-glow 1.2s infinite'
+                      }}
+                    />
+                  )}
+                  {/* Glowing Ring for player's owned destination tickets (green if completed, purple if incomplete) */}
+                  {hasMyTicket && !isHighlighted && (
+                    <circle
+                      r="13"
+                      fill="none"
+                      stroke={isAllCompleted ? '#10b981' : '#a855f7'}
+                      strokeWidth="1.5"
+                      strokeDasharray="4 2"
+                      style={{
+                        filter: `drop-shadow(0 0 4px ${isAllCompleted ? '#10b981' : '#a855f7'})`,
+                        opacity: 0.8
                       }}
                     />
                   )}
