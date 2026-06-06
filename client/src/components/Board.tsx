@@ -534,23 +534,24 @@ export const Board: React.FC<BoardProps> = ({
                       fill="none"
                       stroke="#fbbf24"
                       strokeWidth="2.5"
+                      className="animate-svg-pulse"
                       style={{
-                        filter: 'drop-shadow(0 0 6px #fbbf24)',
-                        animation: 'pulse-glow 1.2s infinite'
+                        filter: 'drop-shadow(0 0 6px #fbbf24)'
                       }}
                     />
                   )}
-                  {/* Glowing Ring for player's owned destination tickets (green if completed, purple if incomplete) */}
+                  {/* Glowing Ring for player's owned destination tickets (bright neon green if completed, fuchsia if incomplete) */}
                   {hasMyTicket && !isHighlighted && (
                     <circle
-                      r="13"
+                      r="14"
                       fill="none"
-                      stroke={isAllCompleted ? '#10b981' : '#a855f7'}
-                      strokeWidth="1.5"
-                      strokeDasharray="4 2"
+                      stroke={isAllCompleted ? '#00ff9d' : '#d946ef'}
+                      strokeWidth="2.2"
+                      strokeDasharray="4 3"
+                      className="animate-svg-pulse"
                       style={{
-                        filter: `drop-shadow(0 0 4px ${isAllCompleted ? '#10b981' : '#a855f7'})`,
-                        opacity: 0.8
+                        filter: `drop-shadow(0 0 6px ${isAllCompleted ? '#00ff9d' : '#d946ef'})`,
+                        opacity: 0.95
                       }}
                     />
                   )}
