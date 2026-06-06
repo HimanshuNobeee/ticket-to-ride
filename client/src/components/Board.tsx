@@ -183,10 +183,6 @@ export const Board: React.FC<BoardProps> = ({
           setError("You cannot claim both routes of a double route.");
           return;
         }
-        if (gameState.players.length <= 3) {
-          setError("In 2 or 3 player games, only one of the double routes can be claimed.");
-          return;
-        }
       }
     }
 

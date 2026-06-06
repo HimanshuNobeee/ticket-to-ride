@@ -517,9 +517,6 @@ export async function claimRouteAction(
     if (otherRoute && otherRoute.claimedBy !== null) {
       // 1. A player cannot claim both routes of a double route (applies to all player counts)
       if (otherRoute.claimedBy === playerId) return null;
-      
-      // 2. In 2 or 3 player games, only one of the double routes can be claimed
-      if (game.players.length <= 3) return null;
     }
   }
 
