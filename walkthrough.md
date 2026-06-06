@@ -162,6 +162,14 @@ We recently updated the application layout, colors, and game logic to maximize u
   - **The Issue**: When all train cards are drawn (deck, discard pile, and face-up slots are completely empty), a player who has only drawn one card cannot draw a second card and becomes locked in their turn forever. Similarly, if the only remaining cards in the supply are face-up locomotives and the player has already drawn one card, they are forbidden by the rules from drawing a face-up locomotive, getting them stuck.
   - **The Solution**: In `drawTrainCard` inside [gameManager.ts](file:///Users/coolhim/Documents/antigravity/radiant-pasteur/server/src/gameManager.ts), we now calculate the total `validCardsForSecondDraw` (excluding face-up locomotives since they are illegal to draw on a second turn). If the player draws their first card and there are no valid cards left for their second draw (`validCardsForSecondDraw === 0`), the server logs this event and automatically ends their turn, transitioning the turn to the next player.
 
+### 13. Host Controls, Host Reassignment, & High-Visibility Ticket Highlights
+- **Manual Host Moderation**: Added "Kick" buttons (available in Lobby and Game Scoreboard) and "Skip Turn" buttons (available in the Game Scoreboard) for the room host. The host can now kick disruptive/stuck players or manually skip a player's turn if they go idle, replacing the automatic disconnect skip timer.
+- **Dynamic Host Reassignment**: If the room host leaves or disconnects, the host crown and rights are dynamically reassigned to the next player who joined who is still online. If the original host reconnects, their host status is seamlessly restored.
+- **Cleaned & Fixed Owned Ticket Highlights**: Updated the player's owned destination ticket indicators on the map to keep the board clean and highly legible:
+  - Connecting dashed lines are completely removed for owned tickets after selection, so only the selected destinations are highlighted, preventing board clutter.
+  - Endpoints (city circles) for owned tickets are reduced to a radius of `14px` and rendered as a fixed, steady highlight (no breathing/pulsing animation) so they are easy to see without being distracting.
+  - Highlights remain color-coded (gold for incomplete, green for completed) to track route-completion status clearly.
+
 ---
 
 ## 🚀 Deployed Production Environments
