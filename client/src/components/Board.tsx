@@ -375,31 +375,6 @@ export const Board: React.FC<BoardProps> = ({
               );
             })()}
 
-            {/* Draw owned destination ticket connection lines */}
-            {self?.destinationTickets && self.destinationTickets.map(ticket => {
-              const c1 = getCityCoords(ticket.city1);
-              const c2 = getCityCoords(ticket.city2);
-              if (c1.x === 0 || c2.x === 0) return null;
-              const isCompleted = isTicketConnected(playerRoutes, ticket);
-              return (
-                <line
-                  key={ticket.id}
-                  x1={c1.x + 10}
-                  y1={c1.y + 10}
-                  x2={c2.x + 10}
-                  y2={c2.y + 10}
-                  stroke={isCompleted ? '#10b981' : '#fbbf24'}
-                  strokeWidth="3.5"
-                  strokeDasharray="6 6"
-                  opacity="0.8"
-                  style={{
-                    filter: `drop-shadow(0 0 8px ${isCompleted ? '#10b981' : '#fbbf24'})`,
-                    pointerEvents: 'none'
-                  }}
-                />
-              );
-            })}
-
             {/* Draw Connection Routes */}
             {gameState.routes.map((route: Route) => {
               const c1 = getCityCoords(route.city1);
@@ -573,13 +548,13 @@ export const Board: React.FC<BoardProps> = ({
                     const hasIncomplete = myIncompleteTicketCities.includes(city.name);
                     return (
                       <circle
-                        r="18"
+                        r="14"
                         fill="none"
                         stroke={hasIncomplete ? '#fbbf24' : '#10b981'}
-                        strokeWidth="2.5"
-                        className="animate-svg-pulse"
+                        strokeWidth="2.2"
                         style={{
-                          filter: `drop-shadow(0 0 6px ${hasIncomplete ? '#fbbf24' : '#10b981'})`
+                          filter: `drop-shadow(0 0 5px ${hasIncomplete ? '#fbbf24' : '#10b981'})`,
+                          opacity: 0.95
                         }}
                       />
                     );
