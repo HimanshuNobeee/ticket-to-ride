@@ -44,6 +44,7 @@ export interface Player {
   points: number;
   isReady: boolean;
   isConnected: boolean;
+  isKicked?: boolean;
 }
 
 export interface GameState {

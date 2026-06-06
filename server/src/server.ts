@@ -15,7 +15,9 @@ import {
   claimRouteAction,
   getGame,
   deleteRoom,
-  setMapType
+  setMapType,
+  kickPlayer,
+  skipPlayerTurn
 } from './gameManager.js';
 import { initDb } from './db.js';
 
@@ -182,6 +184,22 @@ io.on('connection', (socket) => {
       } else {
         io.to(code).emit('game-updated', game);
       }
+    }
+  });
+
+  socket.on('kick-player', async ({ roomId, playerId, targetPlayerId }) => {
+    const code = roomId.toUpperCase();
+    const game = await kickPlayer(code, playerId, targetPlayerId);
+    if (game) {
+      io.to(code).emit('game-updated', game);
+    }
+  });
+
+  socket.on('skip-player-turn', async ({ roomId, playerId, targetPlayerId }) => {
+    const code = roomId.toUpperCase();
+    const game = await skipPlayerTurn(code, playerId, targetPlayerId);
+    if (game) {
+      io.to(code).emit('game-updated', game);
     }
   });
 

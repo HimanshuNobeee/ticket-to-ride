@@ -73,6 +73,14 @@ export const useGameSocket = () => {
     });
 
     newSocket.on('game-updated', (updatedState: GameState) => {
+      const selfPlayer = updatedState.players.find(p => p.id === playerId);
+      if (!selfPlayer || selfPlayer.isKicked) {
+        console.log('You have been kicked by the host.');
+        localStorage.removeItem('t2r_room_id');
+        setGameState(null);
+        setError('You have been kicked from the room by the host.');
+        return;
+      }
       setGameState(updatedState);
     });
 
@@ -192,6 +200,16 @@ export const useGameSocket = () => {
     setGameState(null);
   };
 
+  const kickPlayer = (targetPlayerId: string) => {
+    if (!socketRef.current || !gameState) return;
+    socketRef.current.emit('kick-player', { roomId: gameState.roomId, playerId, targetPlayerId });
+  };
+
+  const skipPlayerTurn = (targetPlayerId: string) => {
+    if (!socketRef.current || !gameState) return;
+    socketRef.current.emit('skip-player-turn', { roomId: gameState.roomId, playerId, targetPlayerId });
+  };
+
   return {
     playerId,
     gameState,
@@ -208,6 +226,8 @@ export const useGameSocket = () => {
     chooseDestinationTickets,
     claimRoute,
     leaveRoom,
+    kickPlayer,
+    skipPlayerTurn,
     setError
   };
 };

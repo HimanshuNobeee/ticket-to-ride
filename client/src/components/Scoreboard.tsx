@@ -33,12 +33,24 @@ interface ScoreboardProps {
   playerId: string;
   gameState: GameState;
   onHighlightCities?: (cities: string[]) => void;
+  onKickPlayer?: (playerId: string) => void;
+  onSkipPlayerTurn?: (playerId: string) => void;
 }
 
-export const Scoreboard: React.FC<ScoreboardProps> = ({ playerId, gameState, onHighlightCities }) => {
+export const Scoreboard: React.FC<ScoreboardProps> = ({
+  playerId,
+  gameState,
+  onHighlightCities,
+  onKickPlayer,
+  onSkipPlayerTurn
+}) => {
   // Sort players by score descending
   const sortedPlayers = [...gameState.players].sort((a, b) => b.points - a.points);
   const activePlayer = gameState.players[gameState.turnIndex];
+
+  // Host is defined dynamically as the first connected player
+  const hostPlayer = gameState.players.find(p => p.isConnected);
+  const isHost = hostPlayer?.id === playerId;
 
   return (
     <div className="glass-panel" style={{ padding: '20px', background: 'rgba(15, 23, 42, 0.65)' }}>
@@ -97,7 +109,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({ playerId, gameState, onH
                     color: p.isConnected ? '#f8fafc' : '#64748b',
                     fontSize: '15px'
                   }}>
-                    {p.name} {isSelf && '(You)'}
+                    {p.name} {isSelf && '(You)'} {p.id === hostPlayer?.id && '👑'}
                     {!p.isConnected && ' (Offline)'}
                   </span>
                 </div>
@@ -177,6 +189,48 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({ playerId, gameState, onH
                 <div style={{ fontSize: '11px', color: '#60a5fa', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                   <Shield size={12} />
                   <span>Thinking... Current player's turn</span>
+                </div>
+              )}
+
+              {/* Host Controls for managing other players */}
+              {isHost && !isSelf && gameState.gameStage !== 'GAME_OVER' && (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.06)', paddingTop: '8px' }}>
+                  {isActive && (
+                    <button
+                      onClick={() => onSkipPlayerTurn?.(p.id)}
+                      style={{
+                        background: 'rgba(59, 130, 246, 0.15)',
+                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                        borderRadius: '4px',
+                        color: '#60a5fa',
+                        fontSize: '10px',
+                        padding: '3px 8px',
+                        cursor: 'pointer',
+                        fontWeight: '700',
+                        transition: 'all 0.2s ease'
+                      }}
+                      title="Skip player's turn"
+                    >
+                      Skip Turn
+                    </button>
+                  )}
+                  <button
+                    onClick={() => onKickPlayer?.(p.id)}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      borderRadius: '4px',
+                      color: '#f87171',
+                      fontSize: '10px',
+                      padding: '3px 8px',
+                      cursor: 'pointer',
+                      fontWeight: '700',
+                      transition: 'all 0.2s ease'
+                    }}
+                    title="Kick player from game"
+                  >
+                    Kick
+                  </button>
                 </div>
               )}
             </div>

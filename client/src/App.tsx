@@ -28,6 +28,8 @@ function App() {
     chooseDestinationTickets,
     claimRoute,
     leaveRoom,
+    kickPlayer,
+    skipPlayerTurn,
     setError
   } = useGameSocket();
 
@@ -198,6 +200,7 @@ function App() {
           selectMap={selectMap}
           startGame={startGame}
           leaveRoom={leaveRoom}
+          kickPlayer={kickPlayer}
           error={error}
           setError={setError}
         />
@@ -305,8 +308,13 @@ function App() {
 
         {/* Right Hand Column: Inventory, Decks and Leaderboard */}
         <div className="sidebar-column">
-          {/* Standings list */}
-          <Scoreboard playerId={playerId} gameState={gameState} onHighlightCities={setHighlightedCities} />
+          <Scoreboard
+            playerId={playerId}
+            gameState={gameState}
+            onHighlightCities={setHighlightedCities}
+            onKickPlayer={kickPlayer}
+            onSkipPlayerTurn={skipPlayerTurn}
+          />
 
           {/* Route Scoring Guide */}
           <div className="glass-panel" style={{ padding: '12px 16px', background: 'rgba(15, 23, 42, 0.45)', border: '1px solid rgba(255,255,255,0.04)' }}>

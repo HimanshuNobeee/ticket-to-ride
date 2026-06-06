@@ -11,6 +11,7 @@ interface LobbyProps {
   selectMap: (mapType: 'CLASSIC_USA' | 'EXPRESS_USA') => void;
   startGame: () => void;
   leaveRoom: () => void;
+  kickPlayer: (playerId: string) => void;
   error: string | null;
   setError: (err: string | null) => void;
 }
@@ -32,6 +33,7 @@ export const Lobby: React.FC<LobbyProps> = ({
   selectMap,
   startGame,
   leaveRoom,
+  kickPlayer,
   error,
   setError
 }) => {
@@ -65,8 +67,9 @@ export const Lobby: React.FC<LobbyProps> = ({
   // If in active room but not playing yet, show the lobby waiting screen
   if (gameState && gameState.gameStage === 'LOBBY') {
     const self = gameState.players.find(p => p.id === playerId);
-    const isHost = gameState.players[0]?.id === playerId;
-    const allReady = gameState.players.length >= 2 && gameState.players.every((p, idx) => p.isReady || idx === 0);
+    const hostPlayer = gameState.players.find(p => p.isConnected);
+    const isHost = hostPlayer?.id === playerId;
+    const allReady = gameState.players.length >= 2 && gameState.players.every((p) => p.isReady || p.id === hostPlayer?.id);
 
     return (
       <div className="glass-panel animate-fade-in" style={{ padding: '32px', maxWidth: '600px', margin: '60px auto' }}>
@@ -124,7 +127,7 @@ export const Lobby: React.FC<LobbyProps> = ({
         <div style={{ marginBottom: '24px' }}>
           <h3 style={{ fontSize: '18px', color: '#e2e8f0', marginBottom: '12px' }}>Players in Lobby</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {gameState.players.map((p, index) => (
+            {gameState.players.map((p) => (
               <div
                 key={p.id}
                 style={{
@@ -140,12 +143,32 @@ export const Lobby: React.FC<LobbyProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: p.color, boxShadow: `0 0 8px ${p.color}` }} />
                   <span style={{ fontWeight: p.id === playerId ? '600' : '400', color: p.isConnected ? '#f8fafc' : '#64748b' }}>
-                    {p.name} {p.id === playerId && '(You)'} {index === 0 && '👑'}
+                    {p.name} {p.id === playerId && '(You)'} {p.id === hostPlayer?.id && '👑'}
                     {!p.isConnected && ' (Offline)'}
                   </span>
                 </div>
 
-                <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {isHost && p.id !== playerId && (
+                    <button
+                      onClick={() => kickPlayer(p.id)}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.15)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        borderRadius: '6px',
+                        color: '#f87171',
+                        fontSize: '11px',
+                        padding: '4px 8px',
+                        cursor: 'pointer',
+                        fontWeight: '700',
+                        marginRight: '4px',
+                        transition: 'all 0.2s ease'
+                      }}
+                      title="Kick Player"
+                    >
+                      Kick
+                    </button>
+                  )}
                   {p.isReady ? (
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981', fontSize: '14px', fontWeight: '500' }}>
                       <CheckCircle2 size={16} /> Ready

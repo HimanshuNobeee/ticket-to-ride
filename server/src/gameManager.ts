@@ -174,6 +174,10 @@ export async function joinRoom(roomId: string, playerId: string, playerName: str
 
   const existingPlayer = game.players.find(p => p.id === playerId);
   if (existingPlayer) {
+    if (existingPlayer.isKicked) {
+      console.log(`Kicked player ${existingPlayer.name} blocked from rejoining Room ${roomId}`);
+      return null;
+    }
     existingPlayer.isConnected = true;
     game.history.push(`${existingPlayer.name} reconnected.`);
     await saveGame(roomId, game);
@@ -199,20 +203,53 @@ export async function joinRoom(roomId: string, playerId: string, playerName: str
   return game;
 }
 
-async function skipDisconnectedTurns(game: ActiveGame) {
-  let attempts = 0;
-  while (attempts < game.players.length && (game.gameStage === 'PLAYING' || game.gameStage === 'LAST_ROUND')) {
-    endTurn(game);
-    if (game.gameStage !== 'PLAYING' && game.gameStage !== 'LAST_ROUND') {
-      break;
+export async function kickPlayer(roomId: string, hostPlayerId: string, playerToKickId: string): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
+  if (!game) return null;
+
+  // The host is the first connected player in the list
+  const host = game.players.find(p => p.isConnected);
+  if (!host || host.id !== hostPlayerId) return null;
+  if (playerToKickId === host.id) return game; // Host cannot kick themselves
+
+  const player = game.players.find(p => p.id === playerToKickId);
+  if (!player) return game;
+
+  game.history.push(`Host ${host.name} kicked ${player.name} from the room.`);
+
+  if (game.gameStage === 'LOBBY') {
+    game.players = game.players.filter(p => p.id !== playerToKickId);
+  } else {
+    player.isConnected = false;
+    player.isKicked = true; // prevent rejoining
+
+    // If it was their turn, skip it
+    const activePlayer = game.players[game.turnIndex];
+    if (activePlayer && activePlayer.id === playerToKickId) {
+      endTurn(game);
     }
-    const nextPlayer = game.players[game.turnIndex];
-    if (nextPlayer && nextPlayer.isConnected) {
-      game.history.push(`It is now ${nextPlayer.name}'s turn.`);
-      break;
-    }
-    attempts++;
   }
+
+  await saveGame(roomId, game);
+  return game;
+}
+
+export async function skipPlayerTurn(roomId: string, hostPlayerId: string, playerToSkipId: string): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
+  if (!game) return null;
+
+  // Verify requester is the host
+  const host = game.players.find(p => p.isConnected);
+  if (!host || host.id !== hostPlayerId) return null;
+
+  const activePlayer = game.players[game.turnIndex];
+  if (!activePlayer || activePlayer.id !== playerToSkipId) return game; // Can only skip if it's their turn
+
+  game.history.push(`Host ${host.name} skipped ${activePlayer.name}'s turn.`);
+  endTurn(game);
+  
+  await saveGame(roomId, game);
+  return game;
 }
 
 export async function leaveRoom(roomId: string, playerId: string): Promise<ActiveGame | null> {
@@ -228,14 +265,6 @@ export async function leaveRoom(roomId: string, playerId: string): Promise<Activ
   } else {
     player.isConnected = false;
     game.history.push(`${player.name} disconnected.`);
-
-    if (game.gameStage === 'PLAYING' || game.gameStage === 'LAST_ROUND') {
-      const activePlayer = game.players[game.turnIndex];
-      if (activePlayer && activePlayer.id === playerId) {
-        game.history.push(`It was ${player.name}'s turn. Skipping turn due to disconnection.`);
-        await skipDisconnectedTurns(game);
-      }
-    }
   }
   await saveGame(roomId, game);
   return game;

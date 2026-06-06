@@ -173,9 +173,13 @@ export const Board: React.FC<BoardProps> = ({
   // Get active player's claimed routes and ticket connection statuses
   const playerRoutes = gameState.routes.filter(r => r.claimedBy === playerId);
   const cityTicketStatuses: Record<string, { completed: boolean }[]> = {};
+  const myIncompleteTicketCities: string[] = [];
   if (self?.destinationTickets) {
     self.destinationTickets.forEach(ticket => {
       const isConnected = isTicketConnected(playerRoutes, ticket);
+      if (!isConnected) {
+        myIncompleteTicketCities.push(ticket.city1, ticket.city2);
+      }
       const cities = [ticket.city1, ticket.city2];
       cities.forEach(cityName => {
         if (!cityTicketStatuses[cityName]) {
@@ -371,6 +375,31 @@ export const Board: React.FC<BoardProps> = ({
               );
             })()}
 
+            {/* Draw owned destination ticket connection lines */}
+            {self?.destinationTickets && self.destinationTickets.map(ticket => {
+              const c1 = getCityCoords(ticket.city1);
+              const c2 = getCityCoords(ticket.city2);
+              if (c1.x === 0 || c2.x === 0) return null;
+              const isCompleted = isTicketConnected(playerRoutes, ticket);
+              return (
+                <line
+                  key={ticket.id}
+                  x1={c1.x + 10}
+                  y1={c1.y + 10}
+                  x2={c2.x + 10}
+                  y2={c2.y + 10}
+                  stroke={isCompleted ? '#10b981' : '#fbbf24'}
+                  strokeWidth="3.5"
+                  strokeDasharray="6 6"
+                  opacity="0.8"
+                  style={{
+                    filter: `drop-shadow(0 0 8px ${isCompleted ? '#10b981' : '#fbbf24'})`,
+                    pointerEvents: 'none'
+                  }}
+                />
+              );
+            })}
+
             {/* Draw Connection Routes */}
             {gameState.routes.map((route: Route) => {
               const c1 = getCityCoords(route.city1);
@@ -518,12 +547,11 @@ export const Board: React.FC<BoardProps> = ({
               );
             })}
 
-            {/* Draw City Pins */}
+             {/* Draw City Pins */}
             {activeCities.map(city => {
               const isHighlighted = highlightedCities.includes(city.name);
               const statuses = cityTicketStatuses[city.name];
               const hasMyTicket = !!statuses;
-              const isAllCompleted = hasMyTicket && statuses.every(s => s.completed);
 
               return (
                 <g key={city.name} transform={`translate(${city.x + 10}, ${city.y + 10})`}>
@@ -540,21 +568,22 @@ export const Board: React.FC<BoardProps> = ({
                       }}
                     />
                   )}
-                  {/* Glowing Ring for player's owned destination tickets (bright neon green if completed, fuchsia if incomplete) */}
-                  {hasMyTicket && !isHighlighted && (
-                    <circle
-                      r="15"
-                      fill="none"
-                      stroke={isAllCompleted ? '#00ff9d' : '#d946ef'}
-                      strokeWidth="3.8"
-                      strokeDasharray="4 3"
-                      className="animate-svg-pulse"
-                      style={{
-                        filter: `drop-shadow(0 0 8px ${isAllCompleted ? '#00ff9d' : '#d946ef'})`,
-                        opacity: 1.0
-                      }}
-                    />
-                  )}
+                  {/* Glowing Ring for player's owned destination tickets (gold if incomplete, green if completed) */}
+                  {hasMyTicket && !isHighlighted && (() => {
+                    const hasIncomplete = myIncompleteTicketCities.includes(city.name);
+                    return (
+                      <circle
+                        r="18"
+                        fill="none"
+                        stroke={hasIncomplete ? '#fbbf24' : '#10b981'}
+                        strokeWidth="2.5"
+                        className="animate-svg-pulse"
+                        style={{
+                          filter: `drop-shadow(0 0 6px ${hasIncomplete ? '#fbbf24' : '#10b981'})`
+                        }}
+                      />
+                    );
+                  })()}
                   {/* Subtle hover city circle */}
                   <circle
                     r="9"
