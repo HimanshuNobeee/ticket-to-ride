@@ -71,13 +71,12 @@ We recently updated the application layout, colors, and game logic to maximize u
 - **Card Inventory Bounce & Color Glows**: In [Hand.tsx](file:///Users/coolhim/Desktop/react%20projects/ticket-to-ride/client/src/components/Hand.tsx), card slot items detect card additions and play a bounce-scale animation (`cardCountBump`) with a glowing drop-shadow. The glow color dynamically matches the color of the card drawn (e.g., drawing a yellow card creates a bright yellow glow).
 - **Floating Action Toast Notification**: In [App.tsx](file:///Users/coolhim/Desktop/react%20projects/ticket-to-ride/client/src/App.tsx), a glassmorphic toast notification slides up at the bottom of the screen when players perform actions (drawing cards, choosing tickets, or claiming routes). It displays the action text along with a matching icon (Sparkles for route claims, Layers for card draws, Compass for ticket drafts), staying on screen for 4 seconds before sliding away.
 
-### 11. Official Sibling/Parallel Double Route Constraints
+### 11. Sibling/Parallel Double Route Constraints
 - **The Rules**:
-  1. A single player is forbidden from claiming both routes of a double route (parallel tracks between the same two cities).
-  2. In 2 or 3 player games, only one of the double routes can be claimed. Once claimed, the other parallel route is permanently closed to all other players.
+  - A single player is forbidden from claiming both parallel tracks of a double route connecting the same two cities.
+  - In all game sizes (including 2 or 3 player games), different players are allowed to claim both parallel routes of a double route (reverted the restriction where only one track could be claimed).
 - **The Solution**: 
-  - Refactored `claimRouteAction` in [gameManager.ts](file:///Users/coolhim/Desktop/react%20projects/ticket-to-ride/server/src/gameManager.ts) to filter for matching sibling routes connecting the same endpoints. If a sibling route is claimed, it blocks the claim if it's the same player or if `players.length <= 3`.
-  - Added matching local validation inside `handleRouteClick` in [Board.tsx](file:///Users/coolhim/Desktop/react%20projects/ticket-to-ride/client/src/components/Board.tsx) to check these rules and display informative, user-friendly errors (e.g. *"You cannot claim both routes of a double route"* or *"In 2 or 3 player games, only one of the double routes can be claimed"*).
+  - Restricts double-route claiming inside `claimRouteAction` in [gameManager.ts](file:///Users/coolhim/Documents/antigravity/radiant-pasteur/server/src/gameManager.ts) and `handleRouteClick` in [Board.tsx](file:///Users/coolhim/Documents/antigravity/radiant-pasteur/client/src/components/Board.tsx) only if the same player attempts to claim both parallel routes. Different players can successfully claim parallel tracks.
 
 ---
 
