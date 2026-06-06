@@ -94,3 +94,86 @@ export async function initDb() {
     console.log("✅ Cloud Firestore database connection active.");
   }
 }
+
+// High score entry interface
+export interface HighScoreEntry {
+  playerName: string;
+  score: number;
+  ticketsCompleted: number;
+  date: string;
+}
+
+// In-memory high score fallback database
+const memoryHighScores: Record<string, HighScoreEntry> = {};
+
+export async function updateHighScoreInDb(playerName: string, score: number, ticketsCompleted: number): Promise<void> {
+  const normalizedName = playerName.trim().toLowerCase();
+  if (!normalizedName) return;
+
+  if (db) {
+    try {
+      const docRef = db.collection('high_scores').doc(normalizedName);
+      const doc = await docRef.get();
+      if (doc.exists) {
+        const existingData = doc.data();
+        // If existing score is higher, don't overwrite it
+        if (existingData.score > score || (existingData.score === score && existingData.ticketsCompleted >= ticketsCompleted)) {
+          return;
+        }
+      }
+      
+      await docRef.set({
+        playerName: playerName.trim(),
+        score,
+        ticketsCompleted,
+        date: new Date().toISOString()
+      });
+      console.log(`🏆 Saved high score for ${playerName}: ${score} pts, ${ticketsCompleted} tickets.`);
+      return;
+    } catch (err) {
+      console.error(`Error saving high score for ${playerName} to Firestore:`, err);
+    }
+  }
+
+  // Fallback to memory
+  const existing = memoryHighScores[normalizedName];
+  if (!existing || existing.score < score || (existing.score === score && existing.ticketsCompleted < ticketsCompleted)) {
+    memoryHighScores[normalizedName] = {
+      playerName: playerName.trim(),
+      score,
+      ticketsCompleted,
+      date: new Date().toISOString()
+    };
+    console.log(`🏆 (Memory) Saved high score for ${playerName}: ${score} pts, ${ticketsCompleted} tickets.`);
+  }
+}
+
+export async function getTopHighScoresFromDb(): Promise<HighScoreEntry[]> {
+  if (db) {
+    try {
+      const snapshot = await db.collection('high_scores')
+        .orderBy('score', 'desc')
+        .orderBy('ticketsCompleted', 'desc')
+        .limit(10)
+        .get();
+      
+      const scores: HighScoreEntry[] = [];
+      snapshot.forEach((doc: any) => {
+        scores.push(doc.data() as HighScoreEntry);
+      });
+      return scores;
+    } catch (err) {
+      console.error("Error fetching high scores from Firestore:", err);
+    }
+  }
+
+  // Fallback to memory
+  return Object.values(memoryHighScores)
+    .sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+      return b.ticketsCompleted - a.ticketsCompleted;
+    })
+    .slice(0, 10);
+}

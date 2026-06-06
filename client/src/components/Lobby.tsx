@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { GameState } from '../utils/gameData.js';
-import { User, ShieldAlert, Sparkles, LogOut, CheckCircle2, Circle } from 'lucide-react';
+import { User, ShieldAlert, Sparkles, LogOut, CheckCircle2, Circle, Trophy, Award } from 'lucide-react';
 
 interface LobbyProps {
   playerId: string;
@@ -41,6 +41,37 @@ export const Lobby: React.FC<LobbyProps> = ({
   const [selectedColor, setSelectedColor] = useState(() => localStorage.getItem('t2r_player_color') || PLAYER_COLORS[0].hex);
   const [roomIdInput, setRoomIdInput] = useState('');
   const [isJoinMode, setIsJoinMode] = useState(false);
+
+  interface HighScoreEntry {
+    playerName: string;
+    score: number;
+    ticketsCompleted: number;
+    date: string;
+  }
+
+  const [highScores, setHighScores] = useState<HighScoreEntry[]>([]);
+  const [loadingHighScores, setLoadingHighScores] = useState(false);
+
+  useEffect(() => {
+    if (!gameState) {
+      setLoadingHighScores(true);
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const serverUrl = isLocalhost ? 'http://localhost:3001' : 'https://ticket-to-ride-jkyl.onrender.com';
+      
+      fetch(`${serverUrl}/api/highscores`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success' && data.scores) {
+            setHighScores(data.scores);
+          }
+          setLoadingHighScores(false);
+        })
+        .catch(err => {
+          console.error("Failed to fetch high scores:", err);
+          setLoadingHighScores(false);
+        });
+    }
+  }, [gameState]);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,7 +262,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
   // Lobby setup / initial entrance screen
   return (
-    <div style={{ maxWidth: '480px', margin: '80px auto', padding: '0 20px' }}>
+    <div style={{ maxWidth: '1100px', margin: '60px auto', padding: '0 20px' }}>
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1 style={{ fontSize: '48px', fontWeight: '800', letterSpacing: '-1px', background: 'linear-gradient(to right, #3b82f6, #60a5fa, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>
           TICKET TO RIDE
@@ -241,127 +272,243 @@ export const Lobby: React.FC<LobbyProps> = ({
         </p>
       </div>
 
-      <div className="glass-panel animate-fade-in" style={{ padding: '32px' }}>
-        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '24px' }}>
-          <button
-            style={{
-              flex: 1,
-              padding: '12px',
-              background: 'none',
-              border: 'none',
-              borderBottom: !isJoinMode ? '2px solid #3b82f6' : 'none',
-              color: !isJoinMode ? '#f8fafc' : '#94a3b8',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-            onClick={() => { setIsJoinMode(false); setError(null); }}
-          >
-            Create Room
-          </button>
-          <button
-            style={{
-              flex: 1,
-              padding: '12px',
-              background: 'none',
-              border: 'none',
-              borderBottom: isJoinMode ? '2px solid #3b82f6' : 'none',
-              color: isJoinMode ? '#f8fafc' : '#94a3b8',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-            onClick={() => { setIsJoinMode(true); setError(null); }}
-          >
-            Join Room
-          </button>
+      <div style={{
+        display: 'flex',
+        gap: '32px',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        alignItems: 'flex-start'
+      }}>
+        {/* Lobby Form Card */}
+        <div className="glass-panel animate-fade-in" style={{ padding: '32px', flex: '1 1 450px', maxWidth: '480px' }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '24px' }}>
+            <button
+              style={{
+                flex: 1,
+                padding: '12px',
+                background: 'none',
+                border: 'none',
+                borderBottom: !isJoinMode ? '2px solid #3b82f6' : 'none',
+                color: !isJoinMode ? '#f8fafc' : '#94a3b8',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+              onClick={() => { setIsJoinMode(false); setError(null); }}
+            >
+              Create Room
+            </button>
+            <button
+              style={{
+                flex: 1,
+                padding: '12px',
+                background: 'none',
+                border: 'none',
+                borderBottom: isJoinMode ? '2px solid #3b82f6' : 'none',
+                color: isJoinMode ? '#f8fafc' : '#94a3b8',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+              onClick={() => { setIsJoinMode(true); setError(null); }}
+            >
+              Join Room
+            </button>
+          </div>
+
+          <form onSubmit={isJoinMode ? handleJoin : handleCreate}>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '14px', color: '#94a3b8', marginBottom: '8px' }}>Nickname</label>
+              <div style={{ position: 'relative' }}>
+                <User size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#64748b' }} />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your name"
+                  maxLength={15}
+                  style={{
+                    width: '100%',
+                    padding: '10px 10px 10px 40px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontSize: '16px',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '14px', color: '#94a3b8', marginBottom: '8px' }}>Choose Train Color</label>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between' }}>
+                {PLAYER_COLORS.map((c) => (
+                  <button
+                    key={c.hex}
+                    type="button"
+                    onClick={() => setSelectedColor(c.hex)}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      backgroundColor: c.hex,
+                      border: selectedColor === c.hex ? '3px solid white' : '1px solid rgba(0,0,0,0.3)',
+                      boxShadow: selectedColor === c.hex ? `0 0 12px ${c.hex}` : 'none',
+                      cursor: 'pointer',
+                      transform: selectedColor === c.hex ? 'scale(1.15)' : 'none',
+                      transition: 'all 0.2s ease'
+                    }}
+                    title={c.name}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {isJoinMode && (
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', fontSize: '14px', color: '#94a3b8', marginBottom: '8px' }}>Room Code</label>
+                <input
+                  type="text"
+                  value={roomIdInput}
+                  onChange={(e) => setRoomIdInput(e.target.value.toUpperCase())}
+                  placeholder="ABCD"
+                  maxLength={4}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    letterSpacing: '3px',
+                    textAlign: 'center',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            )}
+
+            {error && (
+              <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#ef4444', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px' }}>
+                <ShieldAlert size={16} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px' }}>
+              {isJoinMode ? 'Join Game Session' : 'Create Game Lobby'}
+            </button>
+          </form>
         </div>
 
-        <form onSubmit={isJoinMode ? handleJoin : handleCreate}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '14px', color: '#94a3b8', marginBottom: '8px' }}>Nickname</label>
-            <div style={{ position: 'relative' }}>
-              <User size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#64748b' }} />
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
-                maxLength={15}
-                style={{
-                  width: '100%',
-                  padding: '10px 10px 10px 40px',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '8px',
-                  color: 'white',
-                  fontSize: '16px',
-                  outline: 'none'
-                }}
-              />
-            </div>
-          </div>
+        {/* Hall of Fame Leaderboard Card */}
+        <div className="glass-panel animate-fade-in" style={{ padding: '32px', flex: '1 1 450px', maxWidth: '480px', minHeight: '430px' }}>
+          <h3 style={{ fontSize: '18px', color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <Trophy size={18} color="#eab308" style={{ filter: 'drop-shadow(0 0 4px #eab308)' }} /> Hall of Fame
+          </h3>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', fontSize: '14px', color: '#94a3b8', marginBottom: '8px' }}>Choose Train Color</label>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between' }}>
-              {PLAYER_COLORS.map((c) => (
-                <button
-                  key={c.hex}
-                  type="button"
-                  onClick={() => setSelectedColor(c.hex)}
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    backgroundColor: c.hex,
-                    border: selectedColor === c.hex ? '3px solid white' : '1px solid rgba(0,0,0,0.3)',
-                    boxShadow: selectedColor === c.hex ? `0 0 12px ${c.hex}` : 'none',
-                    cursor: 'pointer',
-                    transform: selectedColor === c.hex ? 'scale(1.15)' : 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                  title={c.name}
-                />
-              ))}
+          {loadingHighScores ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '280px', gap: '12px' }}>
+              <div className="loading-spinner" style={{ width: '32px', height: '32px', border: '3px solid rgba(255,255,255,0.05)', borderTop: '3px solid #3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+              <span style={{ fontSize: '14px', color: '#94a3b8' }}>Loading scores...</span>
             </div>
-          </div>
+          ) : highScores.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '280px', textAlign: 'center', padding: '0 20px', gap: '8px' }}>
+              <Award size={36} color="#64748b" />
+              <span style={{ fontSize: '14px', color: '#f8fafc', fontWeight: '600' }}>No high scores recorded yet</span>
+              <span style={{ fontSize: '12px', color: '#64748b' }}>Complete a game session to claim your spot in the Hall of Fame!</span>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {/* Header row */}
+              <div style={{ display: 'flex', padding: '8px 12px', fontSize: '11px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ width: '50px' }}>Rank</span>
+                <span style={{ flex: 1 }}>Player</span>
+                <span style={{ width: '70px', textAlign: 'right' }}>Tickets</span>
+                <span style={{ width: '70px', textAlign: 'right' }}>Score</span>
+              </div>
+              
+              {/* Score rows */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '320px', overflowY: 'auto' }}>
+                {highScores.map((entry, idx) => {
+                  const getMedal = (rank: number) => {
+                    if (rank === 0) return '🥇';
+                    if (rank === 1) return '🥈';
+                    if (rank === 2) return '🥉';
+                    return `#${rank + 1}`;
+                  };
 
-          {isJoinMode && (
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '14px', color: '#94a3b8', marginBottom: '8px' }}>Room Code</label>
-              <input
-                type="text"
-                value={roomIdInput}
-                onChange={(e) => setRoomIdInput(e.target.value.toUpperCase())}
-                placeholder="ABCD"
-                maxLength={4}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '8px',
-                  color: 'white',
-                  fontSize: '18px',
-                  fontWeight: '700',
-                  letterSpacing: '3px',
-                  textAlign: 'center',
-                  outline: 'none'
-                }}
-              />
+                  const isTop3 = idx < 3;
+
+                  return (
+                    <div
+                      key={entry.playerName + idx}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '10px 12px',
+                        background: isTop3 ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
+                        border: isTop3 ? '1px solid rgba(255, 255, 255, 0.04)' : '1px solid transparent',
+                        borderRadius: '8px',
+                        transition: 'background 0.2s ease'
+                      }}
+                      className="hover-bg-opacity"
+                    >
+                      {/* Rank badge */}
+                      <span style={{
+                        width: '50px',
+                        fontSize: isTop3 ? '16px' : '13px',
+                        fontWeight: '700',
+                        color: isTop3 ? '#f8fafc' : '#64748b'
+                      }}>
+                        {getMedal(idx)}
+                      </span>
+                      
+                      {/* Name */}
+                      <span style={{
+                        flex: 1,
+                        fontSize: '14px',
+                        fontWeight: isTop3 ? '600' : '400',
+                        color: isTop3 ? '#60a5fa' : '#f8fafc',
+                        textShadow: isTop3 ? '0 0 8px rgba(96, 165, 250, 0.2)' : 'none',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {entry.playerName}
+                      </span>
+
+                      {/* Tickets completed */}
+                      <span style={{
+                        width: '70px',
+                        textAlign: 'right',
+                        fontSize: '13px',
+                        color: '#10b981',
+                        fontWeight: '600'
+                      }}>
+                        {entry.ticketsCompleted} ✅
+                      </span>
+
+                      {/* Score points */}
+                      <span style={{
+                        width: '70px',
+                        textAlign: 'right',
+                        fontSize: '14px',
+                        fontWeight: '800',
+                        color: '#f8fafc',
+                        fontFamily: 'Outfit, sans-serif'
+                      }}>
+                        {entry.score} pts
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
-
-          {error && (
-            <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#ef4444', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px' }}>
-              <ShieldAlert size={16} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px' }}>
-            {isJoinMode ? 'Join Game Session' : 'Create Game Lobby'}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );

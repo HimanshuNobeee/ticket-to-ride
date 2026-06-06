@@ -13,7 +13,7 @@ import {
   USA_ROUTES,
   USA_DESTINATION_TICKETS
 } from './usaMapData.js';
-import { getGameFromDb, saveGameToDb, deleteGameFromDb } from './db.js';
+import { getGameFromDb, saveGameToDb, deleteGameFromDb, updateHighScoreInDb } from './db.js';
 
 // Define the full active game state structure
 export type ActiveGame = GameState & { 
@@ -708,6 +708,21 @@ function endGame(game: ActiveGame) {
   const winner = game.players.find((p: Player) => p.id === winnerId);
   if (winner) {
     game.history.push(`🎉 Game finished! The winner is ${winner.name} with ${winner.points} points!`);
+  }
+
+  // 4. Record high scores for all players in this game
+  for (const player of game.players) {
+    const playerRoutes = game.routes.filter((r: Route) => r.claimedBy === player.id);
+    let ticketsCompleted = 0;
+    for (const ticket of player.destinationTickets) {
+      const connected = checkConnectivity(playerRoutes, ticket.city1, ticket.city2);
+      if (connected) {
+        ticketsCompleted++;
+      }
+    }
+    updateHighScoreInDb(player.name, player.points, ticketsCompleted).catch(err => {
+      console.error(`Failed to record high score for ${player.name}:`, err);
+    });
   }
 }
 

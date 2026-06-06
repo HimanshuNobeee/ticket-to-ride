@@ -19,7 +19,7 @@ import {
   kickPlayer,
   skipPlayerTurn
 } from './gameManager.js';
-import { initDb } from './db.js';
+import { initDb, getTopHighScoresFromDb } from './db.js';
 
 const app = express();
 app.use(cors());
@@ -33,6 +33,17 @@ app.get('/health', (req, res) => {
 // Root welcome message
 app.get('/', (req, res) => {
   res.send({ message: 'Ticket to Ride Server is Running. Please play the game at: https://t2r-mp-673f2a.web.app' });
+});
+
+// GET High Scores leaderboard
+app.get('/api/highscores', async (req, res) => {
+  try {
+    const scores = await getTopHighScoresFromDb();
+    res.json({ status: 'success', scores });
+  } catch (err) {
+    console.error("Error serving high scores:", err);
+    res.status(500).json({ status: 'error', message: 'Failed to retrieve high scores' });
+  }
 });
 
 const httpServer = createServer(app);
