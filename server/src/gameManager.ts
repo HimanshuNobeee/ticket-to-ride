@@ -58,6 +58,18 @@ function createTrainDeck(): CardColor[] {
   return shuffle(deck);
 }
 
+function getColorName(hex: string): string {
+  const norm = hex.trim().toLowerCase();
+  switch (norm) {
+    case '#3b82f6': return 'Blue Glow';
+    case '#ef4444': return 'Red Flare';
+    case '#10b981': return 'Emerald';
+    case '#f59e0b': return 'Amber';
+    case '#a855f7': return 'Amethyst';
+    default: return hex;
+  }
+}
+
 // Initialize player state
 function createPlayer(id: string, name: string, color: string): Player {
   const cards: Record<CardColor, number> = {
@@ -198,7 +210,7 @@ export async function joinRoom(roomId: string, playerId: string, playerName: str
   // Add new player to lobby
   const newPlayer = createPlayer(playerId, playerName, finalColor);
   game.players.push(newPlayer);
-  game.history.push(`${playerName} joined the room with train color: ${finalColor}.`);
+  game.history.push(`${playerName} joined the room with train color: ${getColorName(finalColor)}.`);
   await saveGame(roomId, game);
   return game;
 }

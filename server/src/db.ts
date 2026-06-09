@@ -153,15 +153,23 @@ export async function getTopHighScoresFromDb(): Promise<HighScoreEntry[]> {
     try {
       const snapshot = await db.collection('high_scores')
         .orderBy('score', 'desc')
-        .orderBy('ticketsCompleted', 'desc')
-        .limit(10)
+        .limit(50)
         .get();
       
       const scores: HighScoreEntry[] = [];
       snapshot.forEach((doc: any) => {
         scores.push(doc.data() as HighScoreEntry);
       });
-      return scores;
+      
+      // Sort in-memory to resolve score ties by ticketsCompleted desc
+      scores.sort((a, b) => {
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
+        return b.ticketsCompleted - a.ticketsCompleted;
+      });
+      
+      return scores.slice(0, 10);
     } catch (err) {
       console.error("Error fetching high scores from Firestore:", err);
     }
