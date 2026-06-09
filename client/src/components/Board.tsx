@@ -20,7 +20,7 @@ const getHexColor = (color: RouteColor): string => {
     case 'YELLOW': return '#eab308';
     case 'BLACK': return '#3f3f46';
     case 'ORANGE': return '#f97316';
-    case 'WHITE': return '#e2e8f0';
+    case 'WHITE': return '#ffffff';
     case 'PURPLE': return '#a855f7';
     case 'LOCOMOTIVE': return '#38bdf8';
     case 'GREY': return '#94a3b8';
@@ -462,7 +462,7 @@ export const Board: React.FC<BoardProps> = ({
                           style={{
                             transition: 'stroke 0.2s, stroke-width 0.2s',
                             filter: isHovered || isClaimed ? `drop-shadow(0 0 4px ${trackColor})` : 'none',
-                            opacity: isClaimed ? 1 : 0.7
+                            opacity: isClaimed ? 1 : (route.color === 'WHITE' ? 1.0 : 0.7)
                           }}
                         />
 

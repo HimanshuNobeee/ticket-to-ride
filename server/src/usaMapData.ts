@@ -157,7 +157,8 @@ export const USA_ROUTES: Route[] = [
   { id: 'no_atl1', city1: 'New Orleans', city2: 'Atlanta', length: 4, color: 'YELLOW', claimedBy: null },
   { id: 'no_atl2', city1: 'New Orleans', city2: 'Atlanta', length: 4, color: 'ORANGE', claimedBy: null },
   { id: 'no_m', city1: 'New Orleans', city2: 'Miami', length: 6, color: 'RED', claimedBy: null },
-  { id: 'nas_atl', city1: 'Nashville', city2: 'Atlanta', length: 1, color: 'GREY', claimedBy: null }
+  { id: 'nas_atl1', city1: 'Nashville', city2: 'Atlanta', length: 1, color: 'GREY', claimedBy: null },
+  { id: 'nas_atl2', city1: 'Nashville', city2: 'Atlanta', length: 1, color: 'GREY', claimedBy: null }
 ];
 
 export const USA_DESTINATION_TICKETS: DestinationTicket[] = [
