@@ -185,3 +185,42 @@ export async function getTopHighScoresFromDb(): Promise<HighScoreEntry[]> {
     })
     .slice(0, 10);
 }
+
+export async function cleanupExpiredGamesInDb(): Promise<string[]> {
+  const deletedRooms: string[] = [];
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  
+  if (db) {
+    try {
+      const snapshot = await db.collection('games').get();
+      for (const doc of snapshot.docs) {
+        const game = doc.data();
+        const activeCount = game.players ? game.players.filter((p: any) => p.isConnected).length : 0;
+        const updatedAtStr = game.updatedAt;
+        if (activeCount === 0 && updatedAtStr) {
+          const updatedAt = new Date(updatedAtStr);
+          if (updatedAt < cutoff) {
+            await doc.ref.delete();
+            deletedRooms.push(doc.id.toUpperCase());
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error cleaning up Firestore games:", err);
+    }
+  } else {
+    for (const [roomId, game] of Object.entries(memoryDb)) {
+      const activeCount = game.players ? game.players.filter((p: any) => p.isConnected).length : 0;
+      const updatedAtStr = game.updatedAt;
+      if (activeCount === 0 && updatedAtStr) {
+        const updatedAt = new Date(updatedAtStr);
+        if (updatedAt < cutoff) {
+          delete memoryDb[roomId];
+          deletedRooms.push(roomId.toUpperCase());
+        }
+      }
+    }
+  }
+  return deletedRooms;
+}

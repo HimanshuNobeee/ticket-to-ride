@@ -31,6 +31,7 @@ export interface DestinationTicket {
   city1: string;
   city2: string;
   points: number;
+  pointsAwarded?: boolean;
 }
 
 export interface Player {

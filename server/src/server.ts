@@ -17,7 +17,8 @@ import {
   deleteRoom,
   setMapType,
   kickPlayer,
-  skipPlayerTurn
+  skipPlayerTurn,
+  cleanupExpiredGamesAction
 } from './gameManager.js';
 import { initDb, getTopHighScoresFromDb } from './db.js';
 
@@ -187,11 +188,17 @@ io.on('connection', (socket) => {
     socket.leave(code);
     delete socketToPlayerMap[socket.id];
     if (game) {
-      // Check if room is empty, delete if it is
+      // Check if room is empty, schedule deletion in 24 hours if it is
       const activeCount = game.players.filter(p => p.isConnected).length;
       if (activeCount === 0) {
-        await deleteRoom(code);
-        console.log(`Room ${code} deleted because it is empty.`);
+        if (!roomDeletionTimeouts[code]) {
+          roomDeletionTimeouts[code] = setTimeout(async () => {
+            await deleteRoom(code);
+            delete roomDeletionTimeouts[code];
+            console.log(`Room ${code} deleted after being empty for 24 hours.`);
+          }, ROOM_DELETION_TIMEOUT);
+          console.log(`Room ${code} is empty. Scheduling deletion in 24 hours...`);
+        }
       } else {
         io.to(code).emit('game-updated', game);
       }
@@ -265,6 +272,16 @@ initDb().then(() => {
   httpServer.listen(PORT, () => {
     console.log(`Socket.io server running on port ${PORT}`);
   });
+  
+  // Run room cleanup check every 30 minutes to clean up empty expired rooms in the database
+  setInterval(async () => {
+    try {
+      console.log("⏰ Running scheduled empty room database cleanup check...");
+      await cleanupExpiredGamesAction();
+    } catch (err) {
+      console.error("Failed to run scheduled empty room cleanup:", err);
+    }
+  }, 30 * 60 * 1000);
 }).catch(err => {
   console.error("Failed to initialize database:", err);
   process.exit(1);

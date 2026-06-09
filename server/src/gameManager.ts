@@ -13,7 +13,7 @@ import {
   USA_ROUTES,
   USA_DESTINATION_TICKETS
 } from './usaMapData.js';
-import { getGameFromDb, saveGameToDb, deleteGameFromDb, updateHighScoreInDb } from './db.js';
+import { getGameFromDb, saveGameToDb, deleteGameFromDb, updateHighScoreInDb, cleanupExpiredGamesInDb } from './db.js';
 
 // Define the full active game state structure
 export type ActiveGame = GameState & { 
@@ -401,6 +401,8 @@ export async function selectInitialTickets(roomId: string, playerId: string, kep
   game.destinationDeck = [...returnedTickets, ...game.destinationDeck];
   delete game.pendingTickets[playerId];
 
+  creditCompletedTickets(game, player);
+
   game.history.push(`${player.name} selected ${keptTickets.length} destination tickets.`);
 
   // If all players have chosen their tickets, advance game stage to PLAYING
@@ -519,6 +521,8 @@ export async function chooseDestinationTickets(roomId: string, playerId: string,
   game.destinationDeck = [...returnedTickets, ...game.destinationDeck];
   delete game.pendingTickets[playerId];
 
+  creditCompletedTickets(game, player);
+
   game.history.push(`${player.name} selected ${keptTickets.length} new destination tickets.`);
 
   // Complete turn
@@ -610,6 +614,7 @@ export async function claimRouteAction(
   player.claimedRoutes.push(route.id);
   player.trainsLeft -= route.length;
   player.points += ROUTE_POINTS[route.length];
+  creditCompletedTickets(game, player);
 
   game.history.push(
     `${player.name} claimed route ${route.city1} to ${route.city2} for ${ROUTE_POINTS[route.length]} points.`
@@ -667,9 +672,15 @@ function endGame(game: ActiveGame) {
     for (const ticket of player.destinationTickets) {
       const connected = checkConnectivity(playerRoutes, ticket.city1, ticket.city2);
       if (connected) {
-        player.points += ticket.points;
-        ticketScore += ticket.points;
-        game.history.push(`  ✅ Connected ${ticket.city1} - ${ticket.city2} (+${ticket.points} pts)`);
+        if (!ticket.pointsAwarded) {
+          ticket.pointsAwarded = true;
+          player.points += ticket.points;
+          ticketScore += ticket.points;
+          game.history.push(`  ✅ Connected ${ticket.city1} - ${ticket.city2} (+${ticket.points} pts)`);
+        } else {
+          ticketScore += ticket.points;
+          game.history.push(`  ✅ Connected ${ticket.city1} - ${ticket.city2} (already credited during game)`);
+        }
       } else {
         player.points -= ticket.points;
         ticketScore -= ticket.points;
@@ -800,4 +811,28 @@ function getLongestPathForPlayer(playerRoutes: Route[]): number {
   }
 
   return maxLen;
+}
+
+export function creditCompletedTickets(game: ActiveGame, player: Player) {
+  const playerRoutes = game.routes.filter((r: Route) => r.claimedBy === player.id);
+  for (const ticket of player.destinationTickets) {
+    if (!ticket.pointsAwarded) {
+      const connected = checkConnectivity(playerRoutes, ticket.city1, ticket.city2);
+      if (connected) {
+        ticket.pointsAwarded = true;
+        player.points += ticket.points;
+        game.history.push(
+          `🎯 Destination Ticket Connected! ${player.name} connected ${ticket.city1} to ${ticket.city2} (+${ticket.points} pts).`
+        );
+      }
+    }
+  }
+}
+
+export async function cleanupExpiredGamesAction(): Promise<void> {
+  const deletedRoomIds = await cleanupExpiredGamesInDb();
+  for (const code of deletedRoomIds) {
+    delete games[code];
+    console.log(`🧹 Evicted empty room ${code} from memory cache.`);
+  }
 }
