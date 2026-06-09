@@ -29,6 +29,24 @@ const isTicketConnected = (playerRoutes: Route[], ticket: DestinationTicket): bo
   return false;
 };
 
+const getPlayerTurnsLeft = (
+  playerIndex: number,
+  currentTurnIndex: number,
+  lastRoundTurnsLeft: number | undefined,
+  playersCount: number
+): number => {
+  if (lastRoundTurnsLeft === undefined) return 0;
+  let count = 0;
+  let tempTurn = currentTurnIndex;
+  for (let t = 0; t < lastRoundTurnsLeft; t++) {
+    if (tempTurn === playerIndex) {
+      count++;
+    }
+    tempTurn = (tempTurn + 1) % playersCount;
+  }
+  return count;
+};
+
 interface ScoreboardProps {
   playerId: string;
   gameState: GameState;
@@ -111,6 +129,15 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                   }}>
                     {p.name} {isSelf && '(You)'} {p.id === hostPlayer?.id && '👑'}
                     {!p.isConnected && ' (Offline)'}
+                    {gameState.gameStage === 'LAST_ROUND' && (() => {
+                      const pIdx = gameState.players.findIndex(x => x.id === p.id);
+                      const turnsLeft = pIdx >= 0 ? getPlayerTurnsLeft(pIdx, gameState.turnIndex, gameState.lastRoundTurnsLeft, gameState.players.length) : 0;
+                      return (
+                        <span style={{ fontSize: '11px', color: '#f87171', marginLeft: '6px', fontWeight: 'bold' }}>
+                          ({turnsLeft} turn{turnsLeft !== 1 ? 's' : ''} left)
+                        </span>
+                      );
+                    })()}
                   </span>
                 </div>
 

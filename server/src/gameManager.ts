@@ -615,11 +615,11 @@ export async function claimRouteAction(
     `${player.name} claimed route ${route.city1} to ${route.city2} for ${ROUTE_POINTS[route.length]} points.`
   );
 
-  // Check if this triggers the final round (trains left is 3 or fewer)
-  if (player.trainsLeft <= 3 && game.lastPlayerId === null) {
+  // Check if this triggers the final round (trains left is 2 or fewer)
+  if (player.trainsLeft <= 2 && game.lastPlayerId === null) {
     game.lastPlayerId = player.id;
     game.gameStage = 'LAST_ROUND';
-    game.history.push(`LAST ROUND TRIGGERED! ${player.name} has ${player.trainsLeft} trains remaining.`);
+    game.history.push(`LAST ROUND TRIGGERED! ${player.name} has ${player.trainsLeft} cars remaining.`);
   }
 
   // Complete turn
@@ -635,8 +635,9 @@ function endTurn(game: ActiveGame) {
 
   if (game.gameStage === 'LAST_ROUND') {
     if (game.lastRoundTurnsLeft === undefined) {
-      // Initiator just finished their turn. Set countdown for 2 final rounds.
-      game.lastRoundTurnsLeft = 2 * game.players.length;
+      // Initiator just finished their turn.
+      // Set countdown so that initiator gets 1 final turn, and everyone else gets 2 turns.
+      game.lastRoundTurnsLeft = 2 * game.players.length - 1;
     } else {
       game.lastRoundTurnsLeft--;
       if (game.lastRoundTurnsLeft === 0) {

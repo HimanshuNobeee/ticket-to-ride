@@ -61,6 +61,7 @@ export interface GameState {
   history: string[]; // Activity log
   routes: Route[];
   mapType: 'CLASSIC_USA' | 'EXPRESS_USA';
+  lastRoundTurnsLeft?: number;
 }
 
 export const CITIES: City[] = [

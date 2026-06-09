@@ -9,6 +9,24 @@ import { HistoryLog } from './components/HistoryLog.js';
 import { AlertCircle, LogOut, Radio, Trophy, ArrowRight, Sparkles, Layers, Compass, Maximize, Minimize } from 'lucide-react';
 import './App.css';
 
+const getPlayerTurnsLeft = (
+  playerIndex: number,
+  currentTurnIndex: number,
+  lastRoundTurnsLeft: number | undefined,
+  playersCount: number
+): number => {
+  if (lastRoundTurnsLeft === undefined) return 0;
+  let count = 0;
+  let tempTurn = currentTurnIndex;
+  for (let t = 0; t < lastRoundTurnsLeft; t++) {
+    if (tempTurn === playerIndex) {
+      count++;
+    }
+    tempTurn = (tempTurn + 1) % playersCount;
+  }
+  return count;
+};
+
 function App() {
   const [highlightedCities, setHighlightedCities] = useState<string[]>([]);
   const [showVictoryOverlay, setShowVictoryOverlay] = useState(true);
@@ -238,11 +256,19 @@ function App() {
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#fbbf24', fontWeight: '700', fontSize: '15px' }}>
               <Trophy size={16} /> Game Concluded!
             </span>
-          ) : isLastRound ? (
-            <span style={{ color: '#ef4444', fontWeight: '700', fontSize: '15px', animation: 'pulse-glow 1.5s infinite' }}>
-              ⚠️ FINAL ROUND: {activePlayer?.name}'s turn (Last moves before scoring)
-            </span>
-          ) : (
+          ) : isLastRound ? (() => {
+            const playerIndex = gameState.players.findIndex(p => p.id === playerId);
+            const myTurnsLeft = playerIndex >= 0 ? getPlayerTurnsLeft(playerIndex, gameState.turnIndex, gameState.lastRoundTurnsLeft, gameState.players.length) : 0;
+            const activeTurnsLeft = getPlayerTurnsLeft(gameState.turnIndex, gameState.turnIndex, gameState.lastRoundTurnsLeft, gameState.players.length);
+            return (
+              <div style={{ color: '#ef4444', fontWeight: '700', fontSize: '14px', animation: 'pulse-glow 1.5s infinite', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                <span>⚠️ FINAL ROUND: {activePlayer?.name}'s turn ({activeTurnsLeft} chance{activeTurnsLeft !== 1 ? 's' : ''} left)</span>
+                <span style={{ fontSize: '11px', opacity: 0.95, color: '#fca5a5' }}>
+                  You have <strong>{myTurnsLeft}</strong> chance{myTurnsLeft !== 1 ? 's' : ''} remaining
+                </span>
+              </div>
+            );
+          })() : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px' }}>
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: activePlayer?.color, boxShadow: `0 0 6px ${activePlayer?.color}` }} />
               <span style={{ color: '#94a3b8' }}>Turn:</span>
