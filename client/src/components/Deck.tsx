@@ -204,7 +204,7 @@ export const Deck: React.FC<DeckProps> = ({
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(168,85,247,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '4px' }}>
                 <Compass size={16} color="#a855f7" />
               </div>
-              <span style={{ fontSize: '10px', color: '#c084fc', fontWeight: '600' }}>Destinations</span>
+              <span style={{ fontSize: '7.5px', color: '#c084fc', fontWeight: '600', textTransform: 'uppercase', textAlign: 'center', padding: '0 2px', lineHeight: '1.1' }}>Destinations Tickets Pile</span>
               <span style={{ fontSize: '13px', fontWeight: '800', marginTop: '2px', fontFamily: 'Outfit, sans-serif' }}>{gameState.destinationDeck.length} left</span>
             </div>
           </div>
@@ -244,7 +244,7 @@ export const Deck: React.FC<DeckProps> = ({
                 >
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9px', pointerEvents: 'none' }} />
                   <span style={{ fontSize: '9px', fontWeight: '800', color: isWhite || isYellow ? '#0f172a' : '#fff', letterSpacing: '-0.3px' }}>
-                    {isLocomotive ? 'LOCO' : color}
+                    {isLocomotive ? 'WILD' : color}
                   </span>
                   <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center', alignSelf: 'flex-end' }}>
                     <Sparkles size={8} color={isWhite || isYellow ? '#0f172a' : '#fff'} />

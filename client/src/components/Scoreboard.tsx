@@ -136,7 +136,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
               {/* Player Asset inventories */}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94a3b8', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px', marginTop: '2px' }}>
                 <span title="Trains Remaining">
-                  🚂 <strong style={{ color: p.trainsLeft <= 5 ? '#ef4444' : '#f1f5f9' }}>{p.trainsLeft}</strong> left
+                  🚂 <strong style={{ color: p.trainsLeft <= 5 ? '#ef4444' : '#f1f5f9' }}>{p.trainsLeft}</strong> cars left
                 </span>
                 <span title="Cards in Hand">
                   🎴 <strong>{cardCount}</strong> cards

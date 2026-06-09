@@ -139,7 +139,7 @@ export const Hand: React.FC<HandProps> = ({ playerId, gameState, onHighlightCiti
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   background: color === 'LOCOMOTIVE' 
-                    ? 'linear-gradient(135deg, #ef4444 0%, #3b82f6 50%, #a855f7 100%)' 
+                    ? 'linear-gradient(45deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #a855f7)' 
                     : hex,
                   border: isWhite ? '1px solid rgba(0,0,0,0.15)' : '1px solid rgba(255,255,255,0.05)',
                   boxShadow: hasGlow ? `0 4px 12px ${hex}40` : 'none',
