@@ -204,7 +204,7 @@ export const Deck: React.FC<DeckProps> = ({
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(168,85,247,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '4px' }}>
                 <Compass size={16} color="#a855f7" />
               </div>
-              <span style={{ fontSize: '7.5px', color: '#c084fc', fontWeight: '600', textTransform: 'uppercase', textAlign: 'center', padding: '0 2px', lineHeight: '1.1' }}>Destinations Tickets Pile</span>
+              <span style={{ fontSize: '10px', color: '#c084fc', fontWeight: '600' }}>Destinations</span>
               <span style={{ fontSize: '13px', fontWeight: '800', marginTop: '2px', fontFamily: 'Outfit, sans-serif' }}>{gameState.destinationDeck.length} left</span>
             </div>
           </div>
