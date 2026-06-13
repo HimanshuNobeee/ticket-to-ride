@@ -138,7 +138,7 @@ export const useGameSocket = () => {
     socketRef.current.emit('toggle-ready', { roomId: gameState.roomId, playerId, isReady });
   };
 
-  const selectMap = (mapType: 'CLASSIC_USA' | 'EXPRESS_USA') => {
+  const selectMap = (mapType: 'CLASSIC_USA' | 'EXPRESS_USA' | 'EUROPE') => {
     if (!socketRef.current || !gameState) return;
     socketRef.current.emit('select-map', { roomId: gameState.roomId, mapType });
   };

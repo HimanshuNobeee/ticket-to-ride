@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { CITIES } from '../utils/gameData.js';
 import type { GameState, Route, CardColor, RouteColor, DestinationTicket } from '../utils/gameData.js';
 import { USA_CITIES } from '../utils/usaMapData.js';
+import { EUROPE_CITIES } from '../utils/europeMapData.js';
 import { Sparkles, MapPin, ZoomIn, ZoomOut, RotateCcw, Lock, Unlock } from 'lucide-react';
 
 interface BoardProps {
@@ -165,7 +166,8 @@ export const Board: React.FC<BoardProps> = ({
   const [isLocked, setIsLocked] = useState(true);
 
   const isClassic = gameState.mapType === 'CLASSIC_USA';
-  const activeCities = isClassic ? USA_CITIES : CITIES;
+  const isEurope = gameState.mapType === 'EUROPE';
+  const activeCities = isEurope ? EUROPE_CITIES : (isClassic ? USA_CITIES : CITIES);
   const self = gameState.players.find(p => p.id === playerId);
   const activePlayer = gameState.players[gameState.turnIndex];
   const isMyTurn = activePlayer?.id === playerId && (gameState.gameStage === 'PLAYING' || gameState.gameStage === 'LAST_ROUND');
@@ -191,9 +193,9 @@ export const Board: React.FC<BoardProps> = ({
   }
 
   // Choose dimension constraints based on the active map type
-  // Classic USA is wider/taller (1220x920) than Express (1020x620)
-  const mapWidth = isClassic ? 1220 : 1020;
-  const mapHeight = isClassic ? 920 : 620;
+  // Classic USA and Europe are wider/taller (1220x920) than Express (1020x620)
+  const mapWidth = (isClassic || isEurope) ? 1220 : 1020;
+  const mapHeight = (isClassic || isEurope) ? 920 : 620;
 
   const getCityCoords = (name: string) => {
     const city = activeCities.find(c => c.name === name);

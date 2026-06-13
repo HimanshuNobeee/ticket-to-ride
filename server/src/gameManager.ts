@@ -13,6 +13,10 @@ import {
   USA_ROUTES,
   USA_DESTINATION_TICKETS
 } from './usaMapData.js';
+import {
+  EUROPE_ROUTES,
+  EUROPE_DESTINATION_TICKETS
+} from './europeMapData.js';
 import { getGameFromDb, saveGameToDb, deleteGameFromDb, updateHighScoreInDb, cleanupExpiredGamesInDb } from './db.js';
 
 // Define the full active game state structure
@@ -162,16 +166,19 @@ export async function deleteRoom(roomId: string) {
   }
 }
 
-export async function setMapType(roomId: string, mapType: 'CLASSIC_USA' | 'EXPRESS_USA'): Promise<ActiveGame | null> {
+export async function setMapType(roomId: string, mapType: 'CLASSIC_USA' | 'EXPRESS_USA' | 'EUROPE'): Promise<ActiveGame | null> {
   const game = await getGame(roomId);
   if (!game || game.gameStage !== 'LOBBY') return null;
   game.mapType = mapType;
   if (mapType === 'CLASSIC_USA') {
     game.routes = JSON.parse(JSON.stringify(USA_ROUTES));
+  } else if (mapType === 'EUROPE') {
+    game.routes = JSON.parse(JSON.stringify(EUROPE_ROUTES));
   } else {
     game.routes = JSON.parse(JSON.stringify(INITIAL_ROUTES));
   }
-  game.history.push(`Map selected: ${mapType === 'CLASSIC_USA' ? 'Classic USA Map' : 'Express USA Map'}.`);
+  const mapLabel = mapType === 'CLASSIC_USA' ? 'Classic USA Map' : mapType === 'EUROPE' ? 'Europe Map' : 'Express USA Map';
+  game.history.push(`Map selected: ${mapLabel}.`);
   await saveGame(roomId, game);
   return game;
 }
@@ -305,6 +312,9 @@ export async function startGame(roomId: string): Promise<ActiveGame | null> {
   if (game.mapType === 'CLASSIC_USA') {
     game.routes = JSON.parse(JSON.stringify(USA_ROUTES));
     game.destinationDeck = shuffle([...USA_DESTINATION_TICKETS]);
+  } else if (game.mapType === 'EUROPE') {
+    game.routes = JSON.parse(JSON.stringify(EUROPE_ROUTES));
+    game.destinationDeck = shuffle([...EUROPE_DESTINATION_TICKETS]);
   } else {
     game.routes = JSON.parse(JSON.stringify(INITIAL_ROUTES));
     game.destinationDeck = shuffle([...DESTINATION_TICKETS]);
@@ -315,7 +325,7 @@ export async function startGame(roomId: string): Promise<ActiveGame | null> {
   game.lastPlayerId = null;
   delete (game as any).lastRoundTurnsLeft;
 
-  const initialTrains = game.mapType === 'CLASSIC_USA' ? 45 : 30;
+  const initialTrains = (game.mapType === 'CLASSIC_USA' || game.mapType === 'EUROPE') ? 45 : 30;
 
   // Deal 4 starting cards to each player
   for (const player of game.players) {
