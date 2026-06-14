@@ -61,7 +61,7 @@ export interface GameState {
   longestRoutePlayerId: string | null;
   history: string[]; // Activity log
   routes: Route[];
-  mapType: 'CLASSIC_USA' | 'EXPRESS_USA' | 'EUROPE';
+  mapType: 'CLASSIC_USA' | 'EXPRESS_USA' | 'EUROPE' | 'INDIA';
   lastRoundTurnsLeft?: number;
 }
 

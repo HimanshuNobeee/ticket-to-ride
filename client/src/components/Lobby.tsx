@@ -8,7 +8,7 @@ interface LobbyProps {
   createRoom: (name: string, color: string) => void;
   joinRoom: (roomId: string, name: string, color: string) => void;
   toggleReady: (ready: boolean) => void;
-  selectMap: (mapType: 'CLASSIC_USA' | 'EXPRESS_USA' | 'EUROPE') => void;
+  selectMap: (mapType: 'CLASSIC_USA' | 'EXPRESS_USA' | 'EUROPE' | 'INDIA') => void;
   startGame: () => void;
   leaveRoom: () => void;
   kickPlayer: (playerId: string) => void;
@@ -125,7 +125,7 @@ export const Lobby: React.FC<LobbyProps> = ({
               </label>
               <select
                 value={gameState.mapType}
-                onChange={(e) => selectMap(e.target.value as 'CLASSIC_USA' | 'EXPRESS_USA' | 'EUROPE')}
+                onChange={(e) => selectMap(e.target.value as 'CLASSIC_USA' | 'EXPRESS_USA' | 'EUROPE' | 'INDIA')}
                 style={{
                   width: '100%',
                   padding: '10px 12px',
@@ -142,6 +142,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 <option value="EXPRESS_USA">Express USA Map (20 cities, faster game)</option>
                 <option value="CLASSIC_USA">Classic USA Map (38 cities, official replica)</option>
                 <option value="EUROPE">Europe Map (35 cities)</option>
+                <option value="INDIA">India Map (40 cities)</option>
               </select>
             </div>
           ) : (
@@ -154,6 +155,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                   ? 'Classic USA Map (38 cities)'
                   : gameState.mapType === 'EUROPE'
                   ? 'Europe Map (35 cities)'
+                  : gameState.mapType === 'INDIA'
+                  ? 'India Map (40 cities)'
                   : 'Express USA Map (20 cities)'}
               </span>
             </div>
