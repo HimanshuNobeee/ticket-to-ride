@@ -196,8 +196,9 @@ export const Board: React.FC<BoardProps> = ({
 
   // Choose dimension constraints based on the active map type
   // Classic USA and Europe are wider/taller (1220x920) than Express (1020x620)
-  const mapWidth = (isClassic || isEurope || isIndia) ? 1220 : 1020;
-  const mapHeight = (isClassic || isEurope || isIndia) ? 920 : 620;
+  // India is temporarily set to 973x1050 to match the custom background image coordinates
+  const mapWidth = isIndia ? 973 : ((isClassic || isEurope) ? 1220 : 1020);
+  const mapHeight = isIndia ? 1050 : ((isClassic || isEurope) ? 920 : 620);
 
   const getCityCoords = (name: string) => {
     const city = activeCities.find(c => c.name === name);
@@ -355,6 +356,17 @@ export const Board: React.FC<BoardProps> = ({
 
           {/* Group wrapper applying translation and scaling vectors */}
           <g transform={`translate(${panX}, ${panY}) scale(${scale})`}>
+            {isIndia && (
+              <image
+                href="/india_map_temp.png"
+                x="0"
+                y="0"
+                width="973"
+                height="1024"
+                opacity="0.35"
+                style={{ pointerEvents: 'none' }}
+              />
+            )}
             
             {/* Draw Dotted Flight-Path connection for Highlighted Destination Tickets */}
             {highlightedCities.length === 2 && (() => {
