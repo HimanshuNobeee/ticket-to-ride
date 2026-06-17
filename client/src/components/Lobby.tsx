@@ -142,7 +142,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 <option value="EXPRESS_USA">Express USA Map (20 cities, faster game)</option>
                 <option value="CLASSIC_USA">Classic USA Map (38 cities, official replica)</option>
                 <option value="EUROPE">Europe Map (35 cities)</option>
-                <option value="INDIA">India Map (35 cities)</option>
+                <option value="INDIA">India Map (34 cities)</option>
               </select>
             </div>
           ) : (
@@ -156,7 +156,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                   : gameState.mapType === 'EUROPE'
                   ? 'Europe Map (35 cities)'
                   : gameState.mapType === 'INDIA'
-                  ? 'India Map (35 cities)'
+                  ? 'India Map (34 cities)'
                   : 'Express USA Map (20 cities)'}
               </span>
             </div>
