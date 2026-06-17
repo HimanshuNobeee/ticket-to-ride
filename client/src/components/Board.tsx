@@ -356,17 +356,8 @@ export const Board: React.FC<BoardProps> = ({
 
           {/* Group wrapper applying translation and scaling vectors */}
           <g transform={`translate(${panX}, ${panY}) scale(${scale})`}>
-            {isIndia && (
-              <image
-                href="/india_map_temp.png"
-                x="0"
-                y="0"
-                width="973"
-                height="1024"
-                opacity="0.35"
-                style={{ pointerEvents: 'none' }}
-              />
-            )}
+            
+
             
             {/* Draw Dotted Flight-Path connection for Highlighted Destination Tickets */}
             {highlightedCities.length === 2 && (() => {
