@@ -6,7 +6,7 @@ import { Hand } from './components/Hand.js';
 import { Deck } from './components/Deck.js';
 import { Scoreboard } from './components/Scoreboard.js';
 import { HistoryLog } from './components/HistoryLog.js';
-import { AlertCircle, LogOut, Radio, Trophy, ArrowRight, Sparkles, Layers, Compass, Maximize, Minimize } from 'lucide-react';
+import { AlertCircle, LogOut, Radio, Trophy, ArrowRight, Sparkles, Layers, Compass, Maximize, Minimize, Smartphone } from 'lucide-react';
 import './App.css';
 
 const getPlayerTurnsLeft = (
@@ -232,6 +232,17 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '16px', overflowY: 'auto' }}>
+
+      {/* Portrait Rotation Warning — CSS-only show/hide based on orientation */}
+      <div className="portrait-warning">
+        <div className="portrait-warning-icon">
+          <Smartphone />
+        </div>
+        <h3>Rotate Your Device</h3>
+        <p>
+          Ticket to Ride is best played in landscape mode. Please rotate your phone sideways for the full board game experience.
+        </p>
+      </div>
       
       {/* Top Banner Control Bar */}
       <div
@@ -343,7 +354,7 @@ function App() {
           />
 
           {/* Route Scoring Guide */}
-          <div className="glass-panel" style={{ padding: '12px 16px', background: 'rgba(15, 23, 42, 0.45)', border: '1px solid rgba(255,255,255,0.04)' }}>
+          <div className="glass-panel route-scoring-guide" style={{ padding: '12px 16px', background: 'rgba(15, 23, 42, 0.45)', border: '1px solid rgba(255,255,255,0.04)' }}>
             <h4 style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', fontWeight: '700' }}>
               Route Scoring Guide
             </h4>

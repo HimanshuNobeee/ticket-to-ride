@@ -55,3 +55,35 @@ Each turn, a player must do one of:
 - **Scoring**:
   - Route claiming points: 1 car = 1pt, 2 = 2pt, 3 = 4pt, 4 = 7pt, 5 = 10pt, 6 = 15pt.
   - Destination tickets: Evaluated in real-time. Completed tickets add points; incomplete tickets subtract points at the game's end.
+
+---
+
+## Mobile & Responsive Layout
+
+### Strategy: Landscape-First for Mobile
+The game is a board game with a wide map — portrait mode is not practical. The app uses a **landscape-forced** strategy:
+
+1. **Portrait Rotation Warning**: On screens `≤900px` width in portrait orientation, a CSS-only overlay prompts the user to rotate their device. The game UI is dimmed behind it. No JS state is involved — CSS `@media (orientation: portrait)` handles visibility.
+
+2. **Mobile Landscape Layout** (`@media (max-height: 500px) and (orientation: landscape)`):
+   - Game grid becomes **68% map | 32% sidebar** (instead of desktop's `2.5fr 1fr`)
+   - All panels get compact padding, reduced font sizes, smaller gaps
+   - Route Scoring Guide is hidden (class: `.route-scoring-guide`)
+   - Top banner shrinks to a single-line compact bar
+
+3. **Ticket Selection as Bottom Sheet**: On mobile landscape, the `.ticket-drawer` repositions from a fixed right-side panel to a **bottom sheet** (slides up from bottom, max 50% viewport height, with a drag handle affordance). This keeps the map visible above while selecting tickets.
+
+4. **Extra-small phones** (`@media (max-height: 420px) and (orientation: landscape)`):
+   - Map column grows to 72%, sidebar shrinks to 28%
+   - Even tighter padding/gaps
+
+### Key CSS Classes for Mobile
+- `.portrait-warning` — Rotation prompt overlay (hidden by default, shown via CSS media query)
+- `.route-scoring-guide` — Applied to the scoring guide panel so it can be `display: none` on mobile
+- `.ticket-drawer` — Dual behavior: fixed right panel on desktop, bottom sheet on mobile landscape
+
+### Mobile-Relevant Files
+- `client/src/index.css` — All responsive breakpoints and mobile CSS
+- `client/src/App.tsx` — Portrait warning markup (uses `Smartphone` icon from lucide-react)
+- `client/index.html` — Viewport meta with `maximum-scale=1.0, user-scalable=no` and `screen-orientation` hint
+
