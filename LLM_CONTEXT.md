@@ -60,30 +60,32 @@ Each turn, a player must do one of:
 
 ## Mobile & Responsive Layout
 
-### Strategy: Landscape-First for Mobile
-The game is a board game with a wide map — portrait mode is not practical. The app uses a **landscape-forced** strategy:
+### Strategy: Mobile-Friendly with Landscape Optimization
+The game works in both portrait and landscape on mobile, but landscape is recommended for the best experience.
 
-1. **Portrait Rotation Warning**: On screens `≤900px` width in portrait orientation, a CSS-only overlay prompts the user to rotate their device. The game UI is dimmed behind it. No JS state is involved — CSS `@media (orientation: portrait)` handles visibility.
+1. **Portrait Mode**: The game stacks vertically (map on top, sidebar below). A gentle non-blocking banner suggests rotating to landscape. The map is always visible.
 
-2. **Mobile Landscape Layout** (`@media (max-height: 500px) and (orientation: landscape)`):
-   - Game grid becomes **68% map | 32% sidebar** (instead of desktop's `2.5fr 1fr`)
-   - All panels get compact padding, reduced font sizes, smaller gaps
+2. **Mobile Layout** (`@media (max-width: 900px)`):
+   - Game grid becomes single column (portrait) or `1fr + 280px sidebar` (landscape)
    - Route Scoring Guide is hidden (class: `.route-scoring-guide`)
-   - Top banner shrinks to a single-line compact bar
+   - Top banner becomes compact
+   - Map column gets `50vh` height with `280px` minimum
 
-3. **Ticket Selection as Bottom Sheet**: On mobile landscape, the `.ticket-drawer` repositions from a fixed right-side panel to a **bottom sheet** (slides up from bottom, max 50% viewport height, with a drag handle affordance). This keeps the map visible above while selecting tickets.
+3. **Ticket Selection as Bottom Sheet**: On all mobile views, the `.ticket-drawer` repositions from a fixed right-side panel to a **bottom sheet** (slides up from bottom, max 45% viewport height, with a drag handle affordance). The map remains visible above while selecting tickets.
 
-4. **Extra-small phones** (`@media (max-height: 420px) and (orientation: landscape)`):
-   - Map column grows to 72%, sidebar shrinks to 28%
-   - Even tighter padding/gaps
+4. **Landscape Layout** (`@media (max-width: 900px) and (orientation: landscape)`):
+   - Side-by-side grid: map + compact sidebar
+   - Full viewport height utilization
+   - Extra-small phones (`max-height: 420px`): even tighter padding
 
 ### Key CSS Classes for Mobile
-- `.portrait-warning` — Rotation prompt overlay (hidden by default, shown via CSS media query)
+- `.portrait-warning` — Non-blocking rotation suggestion banner (hidden by default, shown via CSS `@media (max-width: 600px) and (orientation: portrait)`)
 - `.route-scoring-guide` — Applied to the scoring guide panel so it can be `display: none` on mobile
-- `.ticket-drawer` — Dual behavior: fixed right panel on desktop, bottom sheet on mobile landscape
+- `.ticket-drawer` — Dual behavior: fixed right panel on desktop, bottom sheet on mobile
 
 ### Mobile-Relevant Files
 - `client/src/index.css` — All responsive breakpoints and mobile CSS
 - `client/src/App.tsx` — Portrait warning markup (uses `Smartphone` icon from lucide-react)
-- `client/index.html` — Viewport meta with `maximum-scale=1.0, user-scalable=no` and `screen-orientation` hint
+- `client/index.html` — Viewport meta with `maximum-scale=1.0, user-scalable=no`
+
 
