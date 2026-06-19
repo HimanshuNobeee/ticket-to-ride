@@ -60,32 +60,34 @@ Each turn, a player must do one of:
 
 ## Mobile & Responsive Layout
 
-### Strategy: Mobile-Friendly with Landscape Optimization
-The game works in both portrait and landscape on mobile, but landscape is recommended for the best experience.
+### Strategy: Mobile-Friendly with Responsive Drafting & Touch Scrolling
+The game operates in both portrait and landscape modes on mobile, with custom UX enhancements for screen layouts:
 
-1. **Portrait Mode**: The game stacks vertically (map on top, sidebar below). A gentle non-blocking banner suggests rotating to landscape. The map is always visible.
+1. **Portrait Mode**: The game stacks vertically (map on top, sidebar below). A non-blocking banner recommends rotating to landscape. The map remains visible at the top.
 
-2. **Mobile Layout** (`@media (max-width: 900px)`):
-   - Game grid becomes single column (portrait) or `1fr + 280px sidebar` (landscape)
-   - Route Scoring Guide is hidden (class: `.route-scoring-guide`)
-   - Top banner becomes compact
-   - Map column gets `50vh` height with `280px` minimum
+2. **Mobile Layout (`@media (max-width: 900px)`)**:
+   - Game grid: stacks vertically (portrait) or side-by-side (landscape).
+   - Route Scoring Guide is hidden to save vertical space.
+   - Map container height is set to `50vh`.
 
-3. **Ticket Selection as Bottom Sheet**: On all mobile views, the `.ticket-drawer` repositions from a fixed right-side panel to a **bottom sheet** (slides up from bottom, max 45% viewport height, with a drag handle affordance). The map remains visible above while selecting tickets.
+3. **Ticket Selection Layouts**:
+   - **Inline Sidebar**: On desktop and mobile landscape, the ticket selection interface is rendered directly **inline inside the decks glass panel** under the face-up cards, keeping the view unified and leaving the map fully visible.
+   - **Collapsible Bottom Sheet**: On mobile portrait, the ticket selection is rendered as a fixed bottom sheet (`.ticket-drawer`). Players can tap the header of the sheet to collapse/expand it (toggles `.collapsed` class with a smooth transform animation).
+   - **Map Auto-Focus**: In mobile portrait, drawing destination tickets automatically scrolls the page smoothly to the map (`.map-column`) so that highlighted ticket cities are instantly visible without manual scrolling.
 
-4. **Landscape Layout** (`@media (max-width: 900px) and (orientation: landscape)`):
-   - Side-by-side grid: map + compact sidebar
-   - Full viewport height utilization
-   - Extra-small phones (`max-height: 420px`): even tighter padding
+4. **Map Touch Navigation Lock**:
+   - When map pan/zoom navigation is locked, `touchAction` is set to `'pan-y'` on the map container, letting vertical touch scrolls bubble up and scroll the page.
+   - When unlocked, `touchAction` is `'none'` to allow panning/zooming.
 
 ### Key CSS Classes for Mobile
-- `.portrait-warning` — Non-blocking rotation suggestion banner (hidden by default, shown via CSS `@media (max-width: 600px) and (orientation: portrait)`)
-- `.route-scoring-guide` — Applied to the scoring guide panel so it can be `display: none` on mobile
-- `.ticket-drawer` — Dual behavior: fixed right panel on desktop, bottom sheet on mobile
+- `.portrait-warning` — Inline recommendation banner shown in portrait mode.
+- `.ticket-drawer` — Bottom sheet styling on mobile portrait. Toggles `.collapsed` to slide down and show only a minimized header.
+- `.route-scoring-guide` — Hidden on mobile.
 
 ### Mobile-Relevant Files
-- `client/src/index.css` — All responsive breakpoints and mobile CSS
-- `client/src/App.tsx` — Portrait warning markup (uses `Smartphone` icon from lucide-react)
-- `client/index.html` — Viewport meta with `maximum-scale=1.0, user-scalable=no`
+- `client/src/index.css` — All responsive layouts, transitions, and collapsible bottom-sheet css
+- `client/src/components/Deck.tsx` — Handles inline vs bottom-sheet selection logic, resize listener, map auto-focus, and collapsed state
+- `client/src/components/Board.tsx` — Sets conditional `touchAction: isLocked ? 'pan-y' : 'none'` on the board container
+- `client/index.html` — Viewport meta tags
 
 

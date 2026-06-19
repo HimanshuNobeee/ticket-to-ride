@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { GameState, CardColor, DestinationTicket } from '../utils/gameData.js';
-import { Layers, Sparkles, AlertCircle, Compass } from 'lucide-react';
+import { Layers, Sparkles, AlertCircle, Compass, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface DeckProps {
   playerId: string;
@@ -40,6 +40,8 @@ export const Deck: React.FC<DeckProps> = ({
 }) => {
   const [selectedTickets, setSelectedTickets] = useState<string[]>([]);
   const [hoveredTicket, setHoveredTicket] = useState<DestinationTicket | null>(null);
+  const [isMobilePortrait, setIsMobilePortrait] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const activePlayer = gameState.players[gameState.turnIndex];
   const isMyTurn = activePlayer?.id === playerId && (gameState.gameStage === 'PLAYING' || gameState.gameStage === 'LAST_ROUND');
@@ -47,12 +49,42 @@ export const Deck: React.FC<DeckProps> = ({
   const pendingTickets = (gameState as any).pendingTickets?.[playerId] as DestinationTicket[] | undefined;
   const isInitialDraw = gameState.gameStage === 'INITIAL_DRAW';
 
+  // Detect mobile portrait orientation
+  useEffect(() => {
+    const checkPortrait = () => {
+      setIsMobilePortrait(
+        window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches
+      );
+    };
+
+    checkPortrait();
+    window.addEventListener('resize', checkPortrait);
+    return () => window.removeEventListener('resize', checkPortrait);
+  }, []);
+
   // Keep tickets unselected when modal opens to avoid confusion
   useEffect(() => {
     if (pendingTickets) {
       setSelectedTickets([]);
     }
   }, [pendingTickets]);
+
+  // Handle auto-focus and reset collapse state when tickets are drawn
+  useEffect(() => {
+    if (pendingTickets) {
+      setIsCollapsed(false); // Reset to expanded when new tickets arrive
+      
+      if (isMobilePortrait) {
+        // Auto-focus scroll to the map
+        const mapEl = document.querySelector('.map-column');
+        if (mapEl) {
+          mapEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+    }
+  }, [pendingTickets, isMobilePortrait]);
 
   // Sync highlighted cities when selection or hover state updates
   useEffect(() => {
@@ -82,6 +114,7 @@ export const Deck: React.FC<DeckProps> = ({
   }, [selectedTickets, hoveredTicket, pendingTickets, onHighlightCities]);
 
   const handleCardClick = (index: number) => {
+    if (pendingTickets) return;
     if (!isMyTurn) {
       setError("It's not your turn!");
       return;
@@ -98,6 +131,7 @@ export const Deck: React.FC<DeckProps> = ({
   };
 
   const handleTicketDrawClick = () => {
+    if (pendingTickets) return;
     if (!isMyTurn) {
       setError("It's not your turn!");
       return;
@@ -167,8 +201,9 @@ export const Deck: React.FC<DeckProps> = ({
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                cursor: isMyTurn ? 'pointer' : 'default',
-                boxShadow: isMyTurn ? '0 0 15px rgba(59, 130, 246, 0.15)' : 'none',
+                cursor: isMyTurn && !pendingTickets ? 'pointer' : 'default',
+                opacity: isMyTurn && !pendingTickets ? 1 : 0.5,
+                boxShadow: isMyTurn && !pendingTickets ? '0 0 15px rgba(59, 130, 246, 0.15)' : 'none',
                 transition: 'all 0.2s ease',
                 position: 'relative'
               }}
@@ -194,12 +229,12 @@ export const Deck: React.FC<DeckProps> = ({
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                cursor: isMyTurn && drawCount === 0 ? 'pointer' : 'default',
-                opacity: isMyTurn && drawCount === 0 ? 1 : 0.6,
-                boxShadow: isMyTurn && drawCount === 0 ? '0 0 15px rgba(168, 85, 247, 0.15)' : 'none',
+                cursor: isMyTurn && drawCount === 0 && !pendingTickets ? 'pointer' : 'default',
+                opacity: isMyTurn && drawCount === 0 && !pendingTickets ? 1 : 0.4,
+                boxShadow: isMyTurn && drawCount === 0 && !pendingTickets ? '0 0 15px rgba(168, 85, 247, 0.15)' : 'none',
                 transition: 'all 0.2s ease'
               }}
-              title={drawCount > 0 ? 'Cannot draw tickets if you already drew train cards' : 'Draw destination tickets'}
+              title={pendingTickets ? 'Draft in progress' : (drawCount > 0 ? 'Cannot draw tickets if you already drew train cards' : 'Draw destination tickets')}
             >
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(168,85,247,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '4px' }}>
                 <Compass size={16} color="#a855f7" />
@@ -216,7 +251,7 @@ export const Deck: React.FC<DeckProps> = ({
               const isWhite = color === 'WHITE';
               const isYellow = color === 'YELLOW';
               const isLocomotive = color === 'LOCOMOTIVE';
-              const cardDisabled = isMyTurn && isLocomotive && drawCount > 0;
+              const cardDisabled = (isMyTurn && isLocomotive && drawCount > 0) || pendingTickets;
 
               return (
                 <div
@@ -254,73 +289,172 @@ export const Deck: React.FC<DeckProps> = ({
             })}
           </div>
         </div>
-      </div>
 
-      {/* Floating Ticket Selection Drawer - Replaced full screen overlay to keep map fully visible */}
-      {pendingTickets && (
-        <div className="ticket-drawer">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Compass color="#a855f7" size={22} />
-            <h3 style={{ fontSize: '20px', fontWeight: '800' }}>Draft Tickets</h3>
-          </div>
-          <p style={{ color: '#94a3b8', fontSize: '13px', lineHeight: '1.4' }}>
-            Hover over a ticket to draw its route on the board. You must keep at least{' '}
-            <strong style={{ color: '#fff' }}>{isInitialDraw ? 2 : 1}</strong> ticket(s).
-          </p>
+        {/* Inline Ticket Selection - Desktop & Mobile Landscape */}
+        {pendingTickets && !isMobilePortrait && (
+          <div style={{
+            marginTop: '20px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            paddingTop: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Compass color="#a855f7" size={20} />
+              <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#fff' }}>Draft Destination Tickets</h4>
+            </div>
+            <p style={{ color: '#94a3b8', fontSize: '12px', lineHeight: '1.4' }}>
+              Hover over a ticket to highlight its route on the board. You must keep at least{' '}
+              <strong style={{ color: '#fff' }}>{isInitialDraw ? 2 : 1}</strong> ticket(s).
+            </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {pendingTickets.map(ticket => {
-              const isSelected = selectedTickets.includes(ticket.id);
-              return (
-                <div
-                  key={ticket.id}
-                  onClick={() => handleTicketToggle(ticket.id)}
-                  onMouseEnter={() => setHoveredTicket(ticket)}
-                  onMouseLeave={() => setHoveredTicket(null)}
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: '8px',
-                    background: isSelected ? 'rgba(168, 85, 247, 0.12)' : 'rgba(255, 255, 255, 0.02)',
-                    border: isSelected ? '1.5px solid #a855f7' : '1.5px solid rgba(255,255,255,0.05)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: isSelected ? '0 0 10px rgba(168,85,247,0.1)' : 'none'
-                  }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ color: '#fff', fontSize: '13px', fontWeight: '600' }}>
-                      {ticket.city1} to
-                    </span>
-                    <span style={{ color: '#fff', fontSize: '13px', fontWeight: '600' }}>
-                      {ticket.city2}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {pendingTickets.map(ticket => {
+                const isSelected = selectedTickets.includes(ticket.id);
+                return (
+                  <div
+                    key={ticket.id}
+                    onClick={() => handleTicketToggle(ticket.id)}
+                    onMouseEnter={() => setHoveredTicket(ticket)}
+                    onMouseLeave={() => setHoveredTicket(null)}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      background: isSelected ? 'rgba(168, 85, 247, 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                      border: isSelected ? '1.5px solid #a855f7' : '1.5px solid rgba(255,255,255,0.05)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: isSelected ? '0 0 10px rgba(168,85,247,0.1)' : 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ color: '#fff', fontSize: '13px', fontWeight: '600' }}>
+                        {ticket.city1} to
+                      </span>
+                      <span style={{ color: '#fff', fontSize: '13px', fontWeight: '600' }}>
+                        {ticket.city2}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#a855f7' : '#94a3b8' }}>
+                      +{ticket.points} pts
                     </span>
                   </div>
-                  <span style={{ fontSize: '16px', fontWeight: '800', color: isSelected ? '#a855f7' : '#94a3b8' }}>
-                    +{ticket.points} pts
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '12px' }}>
-            <AlertCircle size={13} />
-            <span>
-              Keeping: {selectedTickets.length} (Target: min {isInitialDraw ? 2 : 1})
-            </span>
-          </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '12px' }}>
+              <AlertCircle size={13} />
+              <span>
+                Keeping: {selectedTickets.length} (Target: min {isInitialDraw ? 2 : 1})
+              </span>
+            </div>
 
-          <button
-            className="btn-primary"
-            onClick={handleConfirmTickets}
-            disabled={selectedTickets.length < (isInitialDraw ? 2 : 1)}
-            style={{ width: '100%', justifyContent: 'center', padding: '10px', fontSize: '14px' }}
+            <button
+              className="btn-primary"
+              onClick={handleConfirmTickets}
+              disabled={selectedTickets.length < (isInitialDraw ? 2 : 1)}
+              style={{ width: '100%', justifyContent: 'center', padding: '10px', fontSize: '14px' }}
+            >
+              Confirm & End Turn
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Floating Collapsible Bottom Sheet - Mobile Portrait Only */}
+      {pendingTickets && isMobilePortrait && (
+        <div
+          className={`ticket-drawer ${isCollapsed ? 'collapsed' : ''}`}
+          style={{ transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}
+        >
+          {/* Header/Toggle Clickable Area */}
+          <div
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              paddingBottom: isCollapsed ? '0' : '10px',
+              borderBottom: isCollapsed ? 'none' : '1px solid rgba(255,255,255,0.08)'
+            }}
           >
-            Confirm & End Turn
-          </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Compass color="#a855f7" size={20} />
+              <span style={{ fontSize: '15px', fontWeight: '800' }}>
+                {isCollapsed ? `Draft Tickets (${selectedTickets.length} kept)` : 'Draft Tickets'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#a855f7', fontSize: '12px', fontWeight: '600' }}>
+              {isCollapsed ? 'Tap to Expand' : 'Tap to Collapse'}
+              {isCollapsed ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </div>
+          </div>
+
+          {!isCollapsed && (
+            <>
+              <p style={{ color: '#94a3b8', fontSize: '13px', lineHeight: '1.4', margin: '4px 0 8px 0' }}>
+                Hover over a ticket to highlight its route on the board. You must keep at least{' '}
+                <strong style={{ color: '#fff' }}>{isInitialDraw ? 2 : 1}</strong> ticket(s).
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '180px', paddingRight: '2px' }}>
+                {pendingTickets.map(ticket => {
+                  const isSelected = selectedTickets.includes(ticket.id);
+                  return (
+                    <div
+                      key={ticket.id}
+                      onClick={() => handleTicketToggle(ticket.id)}
+                      onMouseEnter={() => setHoveredTicket(ticket)}
+                      onMouseLeave={() => setHoveredTicket(null)}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        background: isSelected ? 'rgba(168, 85, 247, 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                        border: isSelected ? '1.5px solid #a855f7' : '1.5px solid rgba(255,255,255,0.05)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: isSelected ? '0 0 10px rgba(168,85,247,0.1)' : 'none'
+                      }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ color: '#fff', fontSize: '13px', fontWeight: '600' }}>
+                          {ticket.city1} to {ticket.city2}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '14px', fontWeight: '800', color: isSelected ? '#a855f7' : '#94a3b8' }}>
+                        +{ticket.points} pts
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '12px', marginTop: '6px' }}>
+                <AlertCircle size={13} />
+                <span>
+                  Keeping: {selectedTickets.length} (Target: min {isInitialDraw ? 2 : 1})
+                </span>
+              </div>
+
+              <button
+                className="btn-primary"
+                onClick={handleConfirmTickets}
+                disabled={selectedTickets.length < (isInitialDraw ? 2 : 1)}
+                style={{ width: '100%', justifyContent: 'center', padding: '10px', fontSize: '14px', marginTop: '6px' }}
+              >
+                Confirm & End Turn
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

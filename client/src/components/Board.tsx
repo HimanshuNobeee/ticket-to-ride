@@ -316,7 +316,7 @@ export const Board: React.FC<BoardProps> = ({
           background: 'rgba(9, 13, 22, 0.9)',
           cursor: isLocked ? 'default' : (isPanning ? 'grabbing' : 'grab'),
           userSelect: 'none',
-          touchAction: 'none',
+          touchAction: isLocked ? 'pan-y' : 'none',
           flex: 1,
           display: 'flex',
           alignItems: 'center',
