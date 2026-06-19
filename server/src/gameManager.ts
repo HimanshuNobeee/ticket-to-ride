@@ -5,9 +5,7 @@ import {
   DestinationTicket,
   CardColor,
   ROUTE_POINTS,
-  CARD_COLORS,
-  DESTINATION_TICKETS,
-  INITIAL_ROUTES
+  CARD_COLORS
 } from './gameData.js';
 import {
   USA_ROUTES,
@@ -150,11 +148,11 @@ export async function createRoom(roomId: string): Promise<ActiveGame> {
     winnerId: null,
     longestRoutePlayerId: null,
     history: ['Room created.'],
-    routes: JSON.parse(JSON.stringify(INITIAL_ROUTES)),
+    routes: JSON.parse(JSON.stringify(USA_ROUTES)),
     drawCountThisTurn: 0,
     pendingTickets: {},
     discardPile: [],
-    mapType: 'EXPRESS_USA' as const
+    mapType: 'CLASSIC_USA' as const
   };
   await saveGame(code, game);
   return game;
@@ -170,7 +168,7 @@ export async function deleteRoom(roomId: string) {
   }
 }
 
-export async function setMapType(roomId: string, mapType: 'CLASSIC_USA' | 'EXPRESS_USA' | 'EUROPE' | 'INDIA'): Promise<ActiveGame | null> {
+export async function setMapType(roomId: string, mapType: 'CLASSIC_USA' | 'EUROPE' | 'INDIA'): Promise<ActiveGame | null> {
   const game = await getGame(roomId);
   if (!game || game.gameStage !== 'LOBBY') return null;
   game.mapType = mapType;
@@ -180,10 +178,8 @@ export async function setMapType(roomId: string, mapType: 'CLASSIC_USA' | 'EXPRE
     game.routes = JSON.parse(JSON.stringify(EUROPE_ROUTES));
   } else if (mapType === 'INDIA') {
     game.routes = JSON.parse(JSON.stringify(INDIA_ROUTES));
-  } else {
-    game.routes = JSON.parse(JSON.stringify(INITIAL_ROUTES));
   }
-  const mapLabel = mapType === 'CLASSIC_USA' ? 'Classic USA Map' : mapType === 'EUROPE' ? 'Europe Map' : mapType === 'INDIA' ? 'India Map' : 'Express USA Map';
+  const mapLabel = mapType === 'CLASSIC_USA' ? 'Classic USA Map' : mapType === 'EUROPE' ? 'Europe Map' : 'India Map';
   game.history.push(`Map selected: ${mapLabel}.`);
   await saveGame(roomId, game);
   return game;
@@ -324,9 +320,6 @@ export async function startGame(roomId: string): Promise<ActiveGame | null> {
   } else if (game.mapType === 'INDIA') {
     game.routes = JSON.parse(JSON.stringify(INDIA_ROUTES));
     game.destinationDeck = shuffle([...INDIA_DESTINATION_TICKETS]);
-  } else {
-    game.routes = JSON.parse(JSON.stringify(INITIAL_ROUTES));
-    game.destinationDeck = shuffle([...DESTINATION_TICKETS]);
   }
 
   game.turnIndex = 0;
@@ -334,7 +327,7 @@ export async function startGame(roomId: string): Promise<ActiveGame | null> {
   game.lastPlayerId = null;
   delete (game as any).lastRoundTurnsLeft;
 
-  const initialTrains = (game.mapType === 'CLASSIC_USA' || game.mapType === 'EUROPE' || game.mapType === 'INDIA') ? 45 : 30;
+  const initialTrains = 45;
 
   // Deal 4 starting cards to each player
   for (const player of game.players) {

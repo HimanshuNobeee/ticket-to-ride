@@ -29,7 +29,7 @@ This monorepo implements a real-time multiplayer version of the **Ticket to Ride
 - **`src/server.ts`**: Starts HTTPS server. Listens to socket requests (`claim-route`, `draw-card`, etc.). Runs a 30-min cron job to clean up abandoned rooms.
 - **`src/gameManager.ts`**: The core game engine. Implements logic for turn control, route validations, deck recycling, card/ticket drawing, and final rounds.
 - **`src/db.ts`**: Configures Firestore. Saves room states and queries the Leaderboard (Hall of Fame) sorted by `score` and `ticketsCompleted` in-memory.
-- **`src/gameData.ts` / `usaMapData.ts` / `europeMapData.ts`**: Match the client-side data configurations for server-side state validation.
+- **`src/gameData.ts` / `usaMapData.ts` / `europeMapData.ts` / `indiaMapData.ts`**: Match the client-side data configurations for server-side state validation.
 
 ---
 
@@ -40,7 +40,7 @@ This monorepo implements a real-time multiplayer version of the **Ticket to Ride
 - On connection, players auto-reconnect using `t2r_player_id` stored in their local storage.
 
 ### 2. Map Settings & Setup
-- **Maps**: `EXPRESS_USA` (20 cities, 30 trains), `CLASSIC_USA` (38 cities, 45 trains), or `EUROPE` (35 cities, 45 trains).
+- **Maps**: `CLASSIC_USA` (38 cities, 45 trains) or `INDIA` (34 cities, 45 trains). (Europe Map is currently disabled).
 - Players start with 4 train cards and 3 destination tickets (must keep at least 1).
 
 ### 3. Turn Actions

@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { CITIES } from '../utils/gameData.js';
 import type { GameState, Route, CardColor, RouteColor, DestinationTicket } from '../utils/gameData.js';
 import { USA_CITIES } from '../utils/usaMapData.js';
 import { EUROPE_CITIES } from '../utils/europeMapData.js';
@@ -166,10 +165,9 @@ export const Board: React.FC<BoardProps> = ({
   const startScreenPointRef = useRef({ x: 0, y: 0 });
   const [isLocked, setIsLocked] = useState(true);
 
-  const isClassic = gameState.mapType === 'CLASSIC_USA';
   const isEurope = gameState.mapType === 'EUROPE';
   const isIndia = gameState.mapType === 'INDIA';
-  const activeCities = isIndia ? INDIA_CITIES : isEurope ? EUROPE_CITIES : (isClassic ? USA_CITIES : CITIES);
+  const activeCities = isIndia ? INDIA_CITIES : isEurope ? EUROPE_CITIES : USA_CITIES;
   const self = gameState.players.find(p => p.id === playerId);
   const activePlayer = gameState.players[gameState.turnIndex];
   const isMyTurn = activePlayer?.id === playerId && (gameState.gameStage === 'PLAYING' || gameState.gameStage === 'LAST_ROUND');
@@ -195,10 +193,10 @@ export const Board: React.FC<BoardProps> = ({
   }
 
   // Choose dimension constraints based on the active map type
-  // Classic USA and Europe are wider/taller (1220x920) than Express (1020x620)
+  // Classic USA and Europe are wider/taller (1220x920)
   // India is temporarily set to 973x1050 to match the custom background image coordinates
-  const mapWidth = isIndia ? 973 : ((isClassic || isEurope) ? 1220 : 1020);
-  const mapHeight = isIndia ? 1050 : ((isClassic || isEurope) ? 920 : 620);
+  const mapWidth = isIndia ? 973 : 1220;
+  const mapHeight = isIndia ? 1050 : 920;
 
   const getCityCoords = (name: string) => {
     const city = activeCities.find(c => c.name === name);
