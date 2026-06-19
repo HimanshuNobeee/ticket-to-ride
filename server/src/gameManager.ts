@@ -557,6 +557,7 @@ export async function claimRouteAction(
   const activePlayer = game.players[game.turnIndex];
   if (activePlayer.id !== playerId) return null;
   if (game.drawCountThisTurn > 0) return null; // Can't claim route if already drew cards
+  if (game.pendingTickets[playerId]) return null; // Can't claim route if choosing destination tickets
 
   const player = game.players.find(p => p.id === playerId)!;
   const route = game.routes.find(r => r.id === routeId);
@@ -650,22 +651,37 @@ export async function claimRouteAction(
 function endTurn(game: ActiveGame) {
   game.drawCountThisTurn = 0;
 
-  if (game.gameStage === 'LAST_ROUND') {
-    if (game.lastRoundTurnsLeft === undefined) {
-      // Initiator just finished their turn.
-      // Set countdown so that initiator gets 1 final turn, and everyone else gets 2 turns.
-      game.lastRoundTurnsLeft = 2 * game.players.length - 1;
-    } else {
-      game.lastRoundTurnsLeft--;
-      if (game.lastRoundTurnsLeft === 0) {
-        // All players have taken their final turn. End the game.
-        endGame(game);
-        return;
+  while (true) {
+    if (game.gameStage === 'LAST_ROUND') {
+      if (game.lastRoundTurnsLeft === undefined) {
+        // Initiator just finished their turn.
+        // Set countdown so that initiator gets 1 final turn, and everyone else gets 2 turns.
+        const activePlayersCount = game.players.filter(p => !p.isKicked).length;
+        game.lastRoundTurnsLeft = 2 * activePlayersCount - 1;
+      } else {
+        game.lastRoundTurnsLeft--;
+        if (game.lastRoundTurnsLeft === 0) {
+          // All players have taken their final turn. End the game.
+          endGame(game);
+          return;
+        }
       }
     }
-  }
 
-  game.turnIndex = (game.turnIndex + 1) % game.players.length;
+    game.turnIndex = (game.turnIndex + 1) % game.players.length;
+
+    // If the next player is not kicked, their turn starts. Break the loop.
+    const nextPlayer = game.players[game.turnIndex];
+    if (nextPlayer && !nextPlayer.isKicked) {
+      break;
+    }
+
+    // Safety check to prevent infinite loop if all players are kicked
+    if (game.players.every(p => p.isKicked)) {
+      endGame(game);
+      return;
+    }
+  }
 }
 
 // End game scoring and calculations

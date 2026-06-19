@@ -13,16 +13,26 @@ const getPlayerTurnsLeft = (
   playerIndex: number,
   currentTurnIndex: number,
   lastRoundTurnsLeft: number | undefined,
-  playersCount: number
+  players: { id: string; isKicked?: boolean }[]
 ): number => {
   if (lastRoundTurnsLeft === undefined) return 0;
+  const targetPlayer = players[playerIndex];
+  if (targetPlayer?.isKicked) return 0;
+
   let count = 0;
   let tempTurn = currentTurnIndex;
   for (let t = 0; t < lastRoundTurnsLeft; t++) {
     if (tempTurn === playerIndex) {
       count++;
     }
-    tempTurn = (tempTurn + 1) % playersCount;
+    let loopCount = 0;
+    while (loopCount < players.length) {
+      tempTurn = (tempTurn + 1) % players.length;
+      if (!players[tempTurn]?.isKicked) {
+        break;
+      }
+      loopCount++;
+    }
   }
   return count;
 };
@@ -269,8 +279,8 @@ function App() {
             </span>
           ) : isLastRound ? (() => {
             const playerIndex = gameState.players.findIndex(p => p.id === playerId);
-            const myTurnsLeft = playerIndex >= 0 ? getPlayerTurnsLeft(playerIndex, gameState.turnIndex, gameState.lastRoundTurnsLeft, gameState.players.length) : 0;
-            const activeTurnsLeft = getPlayerTurnsLeft(gameState.turnIndex, gameState.turnIndex, gameState.lastRoundTurnsLeft, gameState.players.length);
+            const myTurnsLeft = playerIndex >= 0 ? getPlayerTurnsLeft(playerIndex, gameState.turnIndex, gameState.lastRoundTurnsLeft, gameState.players) : 0;
+            const activeTurnsLeft = getPlayerTurnsLeft(gameState.turnIndex, gameState.turnIndex, gameState.lastRoundTurnsLeft, gameState.players);
             return (
               <div style={{ color: '#ef4444', fontWeight: '700', fontSize: '14px', animation: 'pulse-glow 1.5s infinite', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
                 <span>⚠️ FINAL ROUND: {activePlayer?.name}'s turn ({activeTurnsLeft} chance{activeTurnsLeft !== 1 ? 's' : ''} left)</span>

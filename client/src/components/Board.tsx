@@ -215,6 +215,11 @@ export const Board: React.FC<BoardProps> = ({
       setError("It's not your turn!");
       return;
     }
+    const hasPendingTickets = (gameState as any).pendingTickets?.[playerId];
+    if (hasPendingTickets) {
+      setError("You must choose your destination tickets first!");
+      return;
+    }
     if (route.claimedBy) {
       setError("This route is already claimed.");
       return;
