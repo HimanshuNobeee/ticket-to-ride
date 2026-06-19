@@ -179,8 +179,17 @@ export const Deck: React.FC<DeckProps> = ({
         <h3 style={{ fontSize: '16px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           <Layers size={18} color="#3b82f6" /> Drawing Office & Decks
           {isMyTurn && (
-            <span style={{ marginLeft: 'auto', fontSize: '12px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '20px', fontWeight: '700' }}>
-              Your Turn: {2 - drawCount} draws remaining
+            <span style={{
+              marginLeft: 'auto',
+              fontSize: '12px',
+              background: pendingTickets ? '#a855f7' : '#3b82f6',
+              color: 'white',
+              padding: '2px 8px',
+              borderRadius: '20px',
+              fontWeight: '700',
+              textTransform: 'none'
+            }}>
+              {pendingTickets ? 'Choose Tickets' : `Your Turn: ${2 - drawCount} draws remaining`}
             </span>
           )}
         </h3>
@@ -377,22 +386,35 @@ export const Deck: React.FC<DeckProps> = ({
             onClick={() => setIsCollapsed(!isCollapsed)}
             style={{
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              flexDirection: 'column',
               cursor: 'pointer',
               paddingBottom: isCollapsed ? '0' : '10px',
               borderBottom: isCollapsed ? 'none' : '1px solid rgba(255,255,255,0.08)'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Compass color="#a855f7" size={20} />
-              <span style={{ fontSize: '15px', fontWeight: '800' }}>
-                {isCollapsed ? `Draft Tickets (${selectedTickets.length} kept)` : 'Draft Tickets'}
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#a855f7', fontSize: '12px', fontWeight: '600' }}>
-              {isCollapsed ? 'Tap to Expand' : 'Tap to Collapse'}
-              {isCollapsed ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {/* Interactive Drag Handle Line */}
+            <div
+              style={{
+                width: '40px',
+                height: '4px',
+                background: 'rgba(255, 255, 255, 0.25)',
+                borderRadius: '2px',
+                margin: '0 auto 10px auto',
+                flexShrink: 0
+              }}
+            />
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Compass color="#a855f7" size={20} />
+                <span style={{ fontSize: '15px', fontWeight: '800' }}>
+                  {isCollapsed ? `Draft Tickets (${selectedTickets.length} kept)` : 'Draft Tickets'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#a855f7', fontSize: '12px', fontWeight: '600' }}>
+                {isCollapsed ? 'Tap to Expand' : 'Tap to Collapse'}
+                {isCollapsed ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </div>
             </div>
           </div>
 

@@ -319,21 +319,10 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .ticket-drawer.collapsed {
-    transform: translateY(calc(100% - 48px)) !important;
+    transform: translateY(calc(100% - 62px)) !important;
     overflow: hidden;
   }
 
-  /* Drag handle affordance */
-  .ticket-drawer::before {
-    content: '';
-    display: block;
-    width: 40px;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.25);
-    border-radius: 2px;
-    margin: 0 auto 8px auto;
-    flex-shrink: 0;
-  }
 
   /* Hide the route scoring guide to save space */
   .route-scoring-guide {
