@@ -71,8 +71,8 @@ The game operates in both portrait and landscape modes on mobile, with custom UX
    - Map container height is set to `50vh`.
 
 3. **Ticket Selection Layouts**:
-   - **Inline Sidebar**: On desktop and mobile landscape, the ticket selection interface is rendered directly **inline inside the decks glass panel** under the face-up cards, keeping the view unified and leaving the map fully visible.
-   - **Collapsible Bottom Sheet**: On mobile portrait, the ticket selection is rendered as a fixed bottom sheet (`.ticket-drawer`). Players can tap the header of the sheet to collapse/expand it (toggles `.collapsed` class with a smooth transform animation).
+    - **Collapsible Right Drawer**: On desktop, mobile landscape, and other orientations, the ticket selection is rendered as a collapsible drawer (`.ticket-drawer.right-drawer`) sliding out from the right edge. It includes a left-edge toggle tab (`.right-drawer-toggle-tab`) to expand/collapse.
+    - **Collapsible Bottom Sheet**: On mobile portrait, the ticket selection is rendered as a fixed bottom sheet (`.ticket-drawer.bottom-sheet`). Players can tap the header of the sheet to collapse/expand it (toggles `.collapsed` class with a smooth transform animation).
    - **Map Auto-Focus**: In mobile portrait, drawing destination tickets automatically scrolls the page smoothly to the map (`.map-column`) so that highlighted ticket cities are instantly visible without manual scrolling.
 
 4. **Map Touch Navigation Lock**:

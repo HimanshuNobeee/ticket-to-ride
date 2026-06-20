@@ -186,3 +186,24 @@ Your game is now fully hosted and playable online!
 
 - **Frontend Client (Firebase Hosting)**: [https://t2r-mp-673f2a.web.app](https://t2r-mp-673f2a.web.app) (also accessible at [https://t2r-mp-673f2a.firebaseapp.com](https://t2r-mp-673f2a.firebaseapp.com))
 - **Backend API (Render Web Service)**: [https://ticket-to-ride-jkyl.onrender.com](https://ticket-to-ride-jkyl.onrender.com)
+
+---
+
+## 🎨 Collapsible Right-Side Ticket Selection Drawer (Aesthetic Redesign)
+We replaced the inline ticket selection screen on desktop and landscape modes with a collapsible right-side drawer.
+
+### 1. Unified Responsive Component
+- Refactored [Deck.tsx](file:///Users/coolhim/Documents/antigravity/radiant-pasteur/client/src/components/Deck.tsx) to render a unified collapsible ticket drawer component.
+- The component dynamically applies class names based on viewport configuration:
+  - `.bottom-sheet` on mobile portrait.
+  - `.right-drawer` on desktop, mobile landscape, and other orientations.
+- On desktop/landscape (`.right-drawer`), it renders a left-edge toggle tab (`.right-drawer-toggle-tab`) carrying a badge displaying the selected/kept ticket count when collapsed.
+- Expanded states feature larger ticket lists (`max-height: 300px`) and chevrons matching the slide directions.
+
+### 2. Premium CSS Layout & Animations
+- Added transition properties in [index.css](file:///Users/coolhim/Documents/antigravity/radiant-pasteur/client/src/index.css) to support slide animations.
+- Positioned `.ticket-drawer.right-drawer` to match the exact spacing of the original floating panel design (`top: 90px; right: 20px; width: 360px`).
+- Implemented a hidden state `.ticket-drawer.right-drawer.collapsed` translating the drawer completely off-screen (`translateX(calc(100% + 25px))`).
+- Styled `.right-drawer-toggle-tab` with a glassmorphism theme, a left-rounded card edge, dynamic hovering transitions, and a glowing ticket counter badge.
+- Added a specific media query for mobile landscape layouts, optimizing the drawer size (`width: 280px`) and positioning (`top: 60px; right: 12px; height: calc(100vh - 80px)`) to keep the SVG board accessible.
+- Scoped mobile bottom-sheet styles exclusively to `.ticket-drawer.bottom-sheet` to prevent interference on mobile landscape layouts.

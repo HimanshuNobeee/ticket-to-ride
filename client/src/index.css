@@ -253,6 +253,57 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
   gap: 14px;
   animation: fadeIn 0.3s ease-out;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ticket-drawer.right-drawer.collapsed {
+  transform: translateX(calc(100% + 25px));
+}
+
+.right-drawer-toggle-tab {
+  position: absolute;
+  left: -44px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 80px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(168, 85, 247, 0.35);
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: -6px 0 20px rgba(0,0,0,0.5);
+  z-index: 1105;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.right-drawer-toggle-tab:hover {
+  background: rgba(30, 41, 59, 0.98);
+  border-color: rgba(168, 85, 247, 0.6);
+  width: 48px;
+  left: -48px;
+}
+
+.right-drawer-toggle-tab .tab-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #a855f7;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 8px rgba(168,85,247,0.6);
 }
 
 /* ==========================================
@@ -300,7 +351,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   /* --- TICKET DRAWER: Bottom sheet (not full-screen!) --- */
-  .ticket-drawer {
+  .ticket-drawer.bottom-sheet {
     top: auto !important;
     bottom: 0;
     left: 0;
@@ -318,7 +369,7 @@ h1, h2, h3, h4, h5, h6 {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .ticket-drawer.collapsed {
+  .ticket-drawer.bottom-sheet.collapsed {
     transform: translateY(calc(100% - 62px)) !important;
     overflow: hidden;
   }
@@ -374,8 +425,16 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   /* Ticket drawer in landscape: taller since screen is wider */
-  .ticket-drawer {
-    max-height: 55vh;
+  .ticket-drawer.right-drawer {
+    top: 60px;
+    right: 12px;
+    width: 280px;
+    max-height: calc(100vh - 80px);
+    padding: 16px;
+    gap: 10px;
+  }
+  .ticket-drawer.right-drawer.collapsed {
+    transform: translateX(calc(100% + 15px));
   }
 }
 
