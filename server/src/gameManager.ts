@@ -313,13 +313,13 @@ export async function startGame(roomId: string): Promise<ActiveGame | null> {
   
   if (game.mapType === 'CLASSIC_USA') {
     game.routes = JSON.parse(JSON.stringify(USA_ROUTES));
-    game.destinationDeck = shuffle([...USA_DESTINATION_TICKETS]);
+    game.destinationDeck = shuffle(JSON.parse(JSON.stringify(USA_DESTINATION_TICKETS)));
   } else if (game.mapType === 'EUROPE') {
     game.routes = JSON.parse(JSON.stringify(EUROPE_ROUTES));
-    game.destinationDeck = shuffle([...EUROPE_DESTINATION_TICKETS]);
+    game.destinationDeck = shuffle(JSON.parse(JSON.stringify(EUROPE_DESTINATION_TICKETS)));
   } else if (game.mapType === 'INDIA') {
     game.routes = JSON.parse(JSON.stringify(INDIA_ROUTES));
-    game.destinationDeck = shuffle([...INDIA_DESTINATION_TICKETS]);
+    game.destinationDeck = shuffle(JSON.parse(JSON.stringify(INDIA_DESTINATION_TICKETS)));
   }
 
   game.turnIndex = 0;
