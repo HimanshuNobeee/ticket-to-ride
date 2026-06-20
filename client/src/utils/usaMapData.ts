@@ -97,6 +97,7 @@ export const USA_ROUTES: Route[] = [
   { id: 'dal_lr', city1: 'Dallas', city2: 'Little Rock', length: 2, color: 'GREY', claimedBy: null },
   { id: 'dal_hou1', city1: 'Dallas', city2: 'Houston', length: 1, color: 'GREY', claimedBy: null },
   { id: 'dal_hou2', city1: 'Dallas', city2: 'Houston', length: 1, color: 'GREY', claimedBy: null },
+  { id: 'dal_no', city1: 'Dallas', city2: 'New Orleans', length: 2, color: 'RED', claimedBy: null },
   { id: 'hou_no', city1: 'Houston', city2: 'New Orleans', length: 2, color: 'GREY', claimedBy: null },
   { id: 'lr_no', city1: 'Little Rock', city2: 'New Orleans', length: 3, color: 'GREEN', claimedBy: null },
   { id: 'lr_nas', city1: 'Little Rock', city2: 'Nashville', length: 3, color: 'GREY', claimedBy: null },
