@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { GameState, CardColor, DestinationTicket } from '../utils/gameData.js';
-import { Layers, Sparkles, AlertCircle, Compass, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Layers, Sparkles, AlertCircle, Compass, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 
 interface DeckProps {
   playerId: string;
@@ -11,6 +11,7 @@ interface DeckProps {
   selectInitialTickets: (keptIds: string[]) => void;
   setError: (err: string | null) => void;
   onHighlightCities: (cities: string[]) => void;
+  onBuildStationClick?: () => void;
 }
 
 const getHexColor = (color: CardColor): string => {
@@ -36,7 +37,8 @@ export const Deck: React.FC<DeckProps> = ({
   chooseDestinationTickets,
   selectInitialTickets,
   setError,
-  onHighlightCities
+  onHighlightCities,
+  onBuildStationClick
 }) => {
   const [selectedTickets, setSelectedTickets] = useState<string[]>([]);
   const [hoveredTicket, setHoveredTicket] = useState<DestinationTicket | null>(null);
@@ -142,6 +144,25 @@ export const Deck: React.FC<DeckProps> = ({
       return;
     }
     drawDestinationTickets();
+  };
+
+  const handleBuildStationClick = () => {
+    if (pendingTickets) return;
+    if (!isMyTurn) {
+      setError("It's not your turn!");
+      return;
+    }
+    const drawCount = (gameState as any).drawCountThisTurn || 0;
+    if (drawCount > 0) {
+      setError("You cannot build a train station after drawing cards.");
+      return;
+    }
+    const stationsLeft = activePlayer?.stationsLeft ?? 3;
+    if (stationsLeft <= 0) {
+      setError("You have no train stations left to place.");
+      return;
+    }
+    onBuildStationClick?.();
   };
 
   const handleTicketToggle = (ticketId: string) => {
@@ -251,6 +272,49 @@ export const Deck: React.FC<DeckProps> = ({
               <span style={{ fontSize: '10px', color: '#c084fc', fontWeight: '600' }}>Destinations</span>
               <span style={{ fontSize: '13px', fontWeight: '800', marginTop: '2px', fontFamily: 'Outfit, sans-serif' }}>{gameState.destinationDeck.length} left</span>
             </div>
+
+            {/* Build Station Button (Europe Only) */}
+            {gameState.mapType === 'EUROPE' && (() => {
+              const stationsLeft = activePlayer?.stationsLeft ?? 3;
+              const hasStationsLeft = stationsLeft > 0;
+              const canBuild = isMyTurn && drawCount === 0 && !pendingTickets && hasStationsLeft;
+              return (
+                <div
+                  onClick={handleBuildStationClick}
+                  style={{
+                    width: '90px',
+                    height: '96px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                    border: '2px solid rgba(251, 191, 36, 0.3)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    cursor: canBuild ? 'pointer' : 'default',
+                    opacity: canBuild ? 1 : 0.4,
+                    boxShadow: canBuild ? '0 0 15px rgba(251, 191, 36, 0.15)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                  title={
+                    !isMyTurn ? "It's not your turn" :
+                    pendingTickets ? "Draft in progress" :
+                    drawCount > 0 ? "Cannot build a station after drawing cards" :
+                    !hasStationsLeft ? "No stations left" :
+                    "Build Train Station"
+                  }
+                  className="hover-scale"
+                >
+                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(251,191,36,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '4px' }}>
+                    <MapPin size={16} color="#fbbf24" />
+                  </div>
+                  <span style={{ fontSize: '10px', color: '#fbbf24', fontWeight: '600' }}>Build Station</span>
+                  <span style={{ fontSize: '13px', fontWeight: '800', marginTop: '2px', fontFamily: 'Outfit, sans-serif' }}>
+                    {stationsLeft} left
+                  </span>
+                </div>
+              );
+            })()}
           </div>
 
           {/* 5 Face-Up Cards Row below */}

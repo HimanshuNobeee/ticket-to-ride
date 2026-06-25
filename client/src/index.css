@@ -617,3 +617,81 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Outfit', sans-serif;
   letter-spacing: 0.3px;
 }
+
+/* ==========================================
+   CUSTOM PREMIUM DROPDOWN MENUS
+   ========================================== */
+
+.select-dropdown {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  padding-right: 40px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.select-dropdown:hover {
+  border-color: rgba(251, 191, 36, 0.4);
+  background-color: rgba(30, 41, 59, 0.95);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.select-dropdown:focus {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.18);
+  background-color: rgba(15, 23, 42, 0.95);
+}
+
+.select-dropdown option {
+  background: #0f172a;
+  color: #fff;
+  padding: 12px;
+  font-size: 14px;
+}
+
+/* Scrollable City Selection List */
+.city-list-item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.city-list-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.city-list-item.selected {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+}
+
+.city-list-item.selected:hover {
+  background: rgba(251, 191, 36, 0.18);
+}
+
+

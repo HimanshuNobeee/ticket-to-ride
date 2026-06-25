@@ -40,6 +40,7 @@ const getPlayerTurnsLeft = (
 function App() {
   const [highlightedCities, setHighlightedCities] = useState<string[]>([]);
   const [showVictoryOverlay, setShowVictoryOverlay] = useState(true);
+  const [isBuildingStation, setIsBuildingStation] = useState(false);
   const {
     playerId,
     gameState,
@@ -356,6 +357,8 @@ function App() {
             confirmTunnelClaim={confirmTunnelClaim}
             cancelTunnelClaim={cancelTunnelClaim}
             placeStation={placeStation}
+            isBuildingStation={isBuildingStation}
+            onCloseStationBuild={() => setIsBuildingStation(false)}
           />
         </div>
 
@@ -413,6 +416,7 @@ function App() {
               selectInitialTickets={selectInitialTickets}
               setError={setError}
               onHighlightCities={setHighlightedCities}
+              onBuildStationClick={() => setIsBuildingStation(true)}
             />
           )}
 

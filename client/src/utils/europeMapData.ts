@@ -3,23 +3,23 @@ import type { City, Route, DestinationTicket } from './gameData.js';
 export const EUROPE_CITIES: City[] = [
   {
     "name": "Lisboa",
-    "x": 35,
-    "y": 790
+    "x": 30,
+    "y": 740
   },
   {
     "name": "Cadiz",
-    "x": 80,
+    "x": 30,
     "y": 860
   },
   {
     "name": "Madrid",
-    "x": 110,
-    "y": 730
+    "x": 150,
+    "y": 780
   },
   {
     "name": "Barcelona",
-    "x": 230,
-    "y": 690
+    "x": 250,
+    "y": 740
   },
   {
     "name": "Pamplona",
@@ -28,13 +28,13 @@ export const EUROPE_CITIES: City[] = [
   },
   {
     "name": "Marseille",
-    "x": 340,
+    "x": 405,
     "y": 680
   },
   {
     "name": "Paris",
-    "x": 190,
-    "y": 480
+    "x": 220,
+    "y": 450
   },
   {
     "name": "Brest",
@@ -48,13 +48,13 @@ export const EUROPE_CITIES: City[] = [
   },
   {
     "name": "Zurich",
-    "x": 320,
+    "x": 340,
     "y": 520
   },
   {
     "name": "London",
-    "x": 80,
-    "y": 200
+    "x": 150,
+    "y": 230
   },
   {
     "name": "Edinburgh",
@@ -68,8 +68,8 @@ export const EUROPE_CITIES: City[] = [
   },
   {
     "name": "Roma",
-    "x": 450,
-    "y": 750
+    "x": 580,
+    "y": 630
   },
   {
     "name": "Munchen",
@@ -208,8 +208,8 @@ export const EUROPE_CITIES: City[] = [
   },
   {
     "name": "Wilno",
-    "x": 810,
-    "y": 220
+    "x": 850,
+    "y": 285
   },
   {
     "name": "Petrograd",
@@ -218,13 +218,13 @@ export const EUROPE_CITIES: City[] = [
   },
   {
     "name": "Stockholm",
-    "x": 653,
+    "x": 535,
     "y": 60
   },
   {
     "name": "Riga",
-    "x": 784,
-    "y": 140
+    "x": 740,
+    "y": 120
   },
   {
     "name": "Danzic",
@@ -233,8 +233,8 @@ export const EUROPE_CITIES: City[] = [
   },
   {
     "name": "Khobenhaven",
-    "x": 533,
-    "y": 180
+    "x": 350,
+    "y": 80
   }
 ];
 

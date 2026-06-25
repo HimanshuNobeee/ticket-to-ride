@@ -14,6 +14,8 @@ interface BoardProps {
   confirmTunnelClaim: () => void;
   cancelTunnelClaim: () => void;
   placeStation: (cityName: string, cardColor: CardColor) => void;
+  isBuildingStation?: boolean;
+  onCloseStationBuild?: () => void;
 }
 
 const getHexColor = (color: RouteColor): string => {
@@ -174,7 +176,9 @@ export const Board: React.FC<BoardProps> = ({
   highlightedCities,
   confirmTunnelClaim,
   cancelTunnelClaim,
-  placeStation
+  placeStation,
+  isBuildingStation,
+  onCloseStationBuild
 }) => {
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [hoveredRoute, setHoveredRoute] = useState<Route | null>(null);
@@ -276,33 +280,14 @@ export const Board: React.FC<BoardProps> = ({
     return city ? { x: city.x, y: city.y } : { x: 0, y: 0 };
   };
 
-  const handleCityClick = (cityName: string) => {
-    if (gameState.mapType !== 'EUROPE') return;
-    if (!isMyTurn) return;
 
-    if (gameState.gameStage !== 'PLAYING' && gameState.gameStage !== 'LAST_ROUND') return;
-
-    const hasStation = gameState.stations && !!gameState.stations[cityName];
-    if (hasStation) {
-      setError("A Train Station is already placed in this city.");
-      return;
-    }
-
-    const stationsLeft = activePlayer.stationsLeft ?? 3;
-    if (stationsLeft <= 0) {
-      setError("You have no Train Stations left to place.");
-      return;
-    }
-
-    setSelectedCityForStation(cityName);
-    setStationPaymentColor('');
-  };
 
   const executePlaceStation = () => {
     if (!selectedCityForStation || !stationPaymentColor) return;
     placeStation(selectedCityForStation, stationPaymentColor);
     setSelectedCityForStation(null);
     setStationPaymentColor('');
+    onCloseStationBuild?.();
   };
 
   const getStationPaymentOptions = (): CardColor[] => {
@@ -589,6 +574,35 @@ export const Board: React.FC<BoardProps> = ({
                           animationDelay: animatingRoutes[route.id] ? `${i * 120}ms` : undefined
                         }}
                       >
+                        {/* Tunnel backdrop frame */}
+                        {route.isTunnel && (
+                          <>
+                            {/* Base dark outline block */}
+                            <rect
+                              x={-seg.length / 2 - 2}
+                              y={-8}
+                              width={seg.length + 4}
+                              height={16}
+                              rx={4}
+                              fill="rgba(15, 23, 42, 0.85)"
+                              stroke="#475569"
+                              strokeWidth={1.5}
+                            />
+                            {/* Inner dashed masonry line */}
+                            <rect
+                              x={-seg.length / 2 - 2}
+                              y={-8}
+                              width={seg.length + 4}
+                              height={16}
+                              rx={4}
+                              fill="none"
+                              stroke="#cbd5e1"
+                              strokeWidth={0.8}
+                              strokeDasharray="4 3"
+                            />
+                          </>
+                        )}
+
                         {/* Base train track segment rectangle */}
                         <rect
                           x={-seg.length / 2}
@@ -605,6 +619,26 @@ export const Board: React.FC<BoardProps> = ({
                             opacity: isClaimed ? 1 : (route.color === 'WHITE' ? 1.0 : 0.7)
                           }}
                         />
+
+                        {/* Ferry Locomotive Icon */}
+                        {!isClaimed && route.requiredEngines && i < route.requiredEngines && (() => {
+                          const isDark = route.color === 'WHITE' || route.color === 'YELLOW';
+                          const mainColor = isDark ? '#000000' : '#ffffff';
+                          const detailColor = isDark ? '#ffffff' : '#000000';
+                          return (
+                            <g style={{ pointerEvents: 'none' }}>
+                              {/* Steam Engine Body */}
+                              <path
+                                d="M -6,2 L -6,-2.5 L -3,-2.5 L -3,-1 L 2,-1 L 2,-3 L 3.5,-3 L 3.5,-1 L 5.5,-1 L 5.5,2 Z"
+                                fill={mainColor}
+                                opacity="0.85"
+                              />
+                              {/* Wheels */}
+                              <circle cx="-3.5" cy="2.5" r="1.2" fill={detailColor} opacity="0.9" />
+                              <circle cx="2.5" cy="2.5" r="1.2" fill={detailColor} opacity="0.9" />
+                            </g>
+                          );
+                        })()}
 
                         {/* Train car detail overlays if claimed */}
                         {isClaimed && (
@@ -668,20 +702,15 @@ export const Board: React.FC<BoardProps> = ({
               const statuses = cityTicketStatuses[city.name];
               const hasMyTicket = !!statuses;
 
-              const isEurope = gameState.mapType === 'EUROPE';
-              const hasStation = gameState.stations && !!gameState.stations[city.name];
               const stationOwnerId = gameState.stations?.[city.name];
               const stationOwner = stationOwnerId ? gameState.players.find(p => p.id === stationOwnerId) : null;
-              const stationsLeft = activePlayer?.stationsLeft ?? 3;
-              const hasStationsLeft = stationsLeft > 0;
-              const isClickable = isEurope && isMyTurn && !hasStation && hasStationsLeft && (gameState.gameStage === 'PLAYING' || gameState.gameStage === 'LAST_ROUND');
+              const isClickable = false;
 
               return (
                 <g 
                   key={city.name} 
                   transform={`translate(${city.x + 10}, ${city.y + 10})`}
-                  onClick={() => isClickable && handleCityClick(city.name)}
-                  style={{ cursor: isClickable ? 'pointer' : (isHighlighted ? 'help' : 'default') }}
+                  style={{ cursor: isHighlighted ? 'help' : 'default' }}
                 >
                   {/* Glowing Pulse Ring for current ticket selections */}
                   {isHighlighted && (
@@ -1178,10 +1207,19 @@ export const Board: React.FC<BoardProps> = ({
       })()}
 
       {/* Train Station Placement Modal */}
-      {selectedCityForStation && self && (() => {
+      {(selectedCityForStation || isBuildingStation) && self && (() => {
         const stationsLeft = self.stationsLeft ?? 3;
         const cost = 4 - stationsLeft;
         const options = getStationPaymentOptions();
+        const eligibleCities = gameState.mapType === 'EUROPE'
+          ? EUROPE_CITIES.map(c => c.name).filter(name => !gameState.stations?.[name]).sort()
+          : [];
+
+        const handleCancel = () => {
+          setSelectedCityForStation(null);
+          setStationPaymentColor('');
+          onCloseStationBuild?.();
+        };
 
         return (
           <div
@@ -1215,78 +1253,127 @@ export const Board: React.FC<BoardProps> = ({
               <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '12px', color: '#fbbf24', textAlign: 'center' }}>
                 Place Train Station
               </h3>
-              <p style={{ color: '#94a3b8', fontSize: '14px', textAlign: 'center', marginBottom: '20px' }}>
-                Build a station in <strong>{selectedCityForStation}</strong> to use an opponent's route connecting to it.
-              </p>
 
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  background: 'rgba(0,0,0,0.2)',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  marginBottom: '20px',
-                  border: '1px solid rgba(255,255,255,0.03)'
-                }}
-              >
-                <span>Cost (Station #{4 - stationsLeft}):</span>
-                <strong style={{ color: '#fbbf24' }}>{cost} Card{cost > 1 ? 's' : ''}</strong>
-              </div>
-
-              <div style={{ marginBottom: '24px' }}>
+              <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
-                  Select Payment Card Color:
+                  Select City:
                 </label>
-                {options.length === 0 ? (
-                  <p style={{ color: '#ef4444', fontSize: '13px', textAlign: 'center' }}>
-                    ❌ You do not have enough cards of any color (with locomotives) to cover the cost.
-                  </p>
-                ) : (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
-                    {options.map(color => (
+                <div
+                  style={{
+                    maxHeight: '140px',
+                    overflowY: 'auto',
+                    border: '1.5px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '10px',
+                    background: 'rgba(15, 23, 42, 0.85)',
+                    padding: '6px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}
+                >
+                  {eligibleCities.map(cityName => {
+                    const isSelected = selectedCityForStation === cityName;
+                    return (
                       <button
-                        key={color}
-                        className={`btn-secondary ${stationPaymentColor === color ? 'text-glow' : ''}`}
-                        onClick={() => setStationPaymentColor(color)}
-                        style={{
-                          padding: '8px 12px',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          fontWeight: 'bold',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          border: stationPaymentColor === color ? `2px solid ${getHexColor(color)}` : '1px solid rgba(255,255,255,0.05)',
-                          background: stationPaymentColor === color ? 'rgba(255, 255, 255, 0.05)' : undefined
+                        key={cityName}
+                        onClick={() => {
+                          setSelectedCityForStation(cityName);
+                          setStationPaymentColor('');
                         }}
+                        className={`city-list-item ${isSelected ? 'selected' : ''}`}
                       >
-                        <span
-                          style={{
-                            width: '10px',
-                            height: '14px',
-                            borderRadius: '2px',
-                            background: getHexColor(color),
-                            display: 'inline-block'
-                          }}
-                        />
-                        {color} ({self.cards[color] || 0})
+                        <span>{cityName}</span>
+                        {isSelected && (
+                          <span style={{ fontSize: '10px', background: '#fbbf24', color: '#0f172a', padding: '1px 6px', borderRadius: '10px', fontWeight: '800' }}>
+                            Selected
+                          </span>
+                        )}
                       </button>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
               </div>
+
+              {selectedCityForStation ? (
+                <>
+                  <p style={{ color: '#94a3b8', fontSize: '14px', textAlign: 'center', marginBottom: '20px' }}>
+                    Build a station in <strong>{selectedCityForStation}</strong> to use an opponent's route connecting to it.
+                  </p>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      background: 'rgba(0,0,0,0.2)',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      marginBottom: '20px',
+                      border: '1px solid rgba(255,255,255,0.03)'
+                    }}
+                  >
+                    <span>Cost (Station #{4 - stationsLeft}):</span>
+                    <strong style={{ color: '#fbbf24' }}>{cost} Card{cost > 1 ? 's' : ''}</strong>
+                  </div>
+
+                  <div style={{ marginBottom: '24px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+                      Select Payment Card Color:
+                    </label>
+                    {options.length === 0 ? (
+                      <p style={{ color: '#ef4444', fontSize: '13px', textAlign: 'center' }}>
+                        ❌ You do not have enough cards of any color (with locomotives) to cover the cost.
+                      </p>
+                    ) : (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+                        {options.map(color => (
+                          <button
+                            key={color}
+                            className={`btn-secondary ${stationPaymentColor === color ? 'text-glow' : ''}`}
+                            onClick={() => setStationPaymentColor(color)}
+                            style={{
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                              fontWeight: 'bold',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              border: stationPaymentColor === color ? `2px solid ${getHexColor(color)}` : '1px solid rgba(255,255,255,0.05)',
+                              background: stationPaymentColor === color ? 'rgba(255, 255, 255, 0.05)' : undefined
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: '10px',
+                                height: '14px',
+                                borderRadius: '2px',
+                                background: getHexColor(color),
+                                display: 'inline-block'
+                              }}
+                            />
+                            {color} ({self.cards[color] || 0})
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p style={{ color: '#94a3b8', fontSize: '14px', textAlign: 'center', marginBottom: '24px', fontStyle: 'italic' }}>
+                  Please select a city to view placement options and costs.
+                </p>
+              )}
 
               <div style={{ display: 'flex', gap: '12px' }}>
-                <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setSelectedCityForStation(null)}>
+                <button className="btn-secondary" style={{ flex: 1 }} onClick={handleCancel}>
                   Cancel
                 </button>
                 <button
                   className="btn-primary"
                   style={{ flex: 1 }}
                   onClick={executePlaceStation}
-                  disabled={!stationPaymentColor}
+                  disabled={!selectedCityForStation || !stationPaymentColor}
                 >
                   Place Station
                 </button>
