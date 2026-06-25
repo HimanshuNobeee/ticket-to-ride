@@ -1,4 +1,4 @@
-import { City, Route, DestinationTicket } from './gameData.js';
+import type { City, Route, DestinationTicket } from './gameData.js';
 
 export const USA_CITIES: City[] = [
   { name: 'Vancouver', x: 100, y: 80 },
@@ -47,10 +47,10 @@ export const USA_ROUTES: Route[] = [
   { id: 'v_s1', city1: 'Vancouver', city2: 'Seattle', length: 1, color: 'GREY', claimedBy: null },
   { id: 'v_s2', city1: 'Vancouver', city2: 'Seattle', length: 1, color: 'GREY', claimedBy: null },
   { id: 's_c', city1: 'Seattle', city2: 'Calgary', length: 4, color: 'GREY', claimedBy: null },
-  { id: 's_h', city1: 'Seattle', city2: 'Helena', length: 6, color: 'YELLOW', claimedBy: null },
+  { id: 's_h', city1: 'Seattle', city2: 'Helena', length: 5, color: 'YELLOW', claimedBy: null },
   { id: 's_p1', city1: 'Seattle', city2: 'Portland', length: 1, color: 'GREY', claimedBy: null },
   { id: 's_p2', city1: 'Seattle', city2: 'Portland', length: 1, color: 'GREY', claimedBy: null },
-  { id: 'p_slc', city1: 'Portland', city2: 'Salt Lake City', length: 6, color: 'BLUE', claimedBy: null },
+  { id: 'p_slc', city1: 'Portland', city2: 'Salt Lake City', length: 5, color: 'BLUE', claimedBy: null },
   { id: 'p_sf1', city1: 'Portland', city2: 'San Francisco', length: 5, color: 'GREEN', claimedBy: null },
   { id: 'p_sf2', city1: 'Portland', city2: 'San Francisco', length: 5, color: 'PURPLE', claimedBy: null },
   
@@ -65,7 +65,7 @@ export const USA_ROUTES: Route[] = [
   { id: 'lv_slc', city1: 'Las Vegas', city2: 'Salt Lake City', length: 3, color: 'ORANGE', claimedBy: null },
   { id: 'phx_sf', city1: 'Phoenix', city2: 'Santa Fe', length: 3, color: 'GREY', claimedBy: null },
   { id: 'phx_ep', city1: 'Phoenix', city2: 'El Paso', length: 3, color: 'GREY', claimedBy: null },
-  { id: 'phx_den', city1: 'Phoenix', city2: 'Denver', length: 5, color: 'WHITE', claimedBy: null },
+  { id: 'la_den', city1: 'Los Angeles', city2: 'Denver', length: 5, color: 'WHITE', claimedBy: null },
   
   // Mountain / Central
   { id: 'c_w', city1: 'Calgary', city2: 'Winnipeg', length: 6, color: 'WHITE', claimedBy: null },
@@ -153,7 +153,7 @@ export const USA_ROUTES: Route[] = [
   { id: 'ch_jax', city1: 'Charleston', city2: 'Jacksonville', length: 2, color: 'GREY', claimedBy: null },
   { id: 'jax_atl', city1: 'Jacksonville', city2: 'Atlanta', length: 2, color: 'GREY', claimedBy: null },
   { id: 'jax_m', city1: 'Jacksonville', city2: 'Miami', length: 4, color: 'PURPLE', claimedBy: null },
-  { id: 'jax_no', city1: 'Jacksonville', city2: 'New Orleans', length: 6, color: 'GREY', claimedBy: null },
+  { id: 'jax_no', city1: 'Jacksonville', city2: 'New Orleans', length: 5, color: 'GREY', claimedBy: null },
   { id: 'm_atl', city1: 'Miami', city2: 'Atlanta', length: 5, color: 'BLUE', claimedBy: null },
   { id: 'no_atl1', city1: 'New Orleans', city2: 'Atlanta', length: 4, color: 'YELLOW', claimedBy: null },
   { id: 'no_atl2', city1: 'New Orleans', city2: 'Atlanta', length: 4, color: 'ORANGE', claimedBy: null },
@@ -192,5 +192,15 @@ export const USA_DESTINATION_TICKETS: DestinationTicket[] = [
   { id: 'ut27', city1: 'Vancouver', city2: 'Montreal', points: 20 },
   { id: 'ut28', city1: 'Vancouver', city2: 'Santa Fe', points: 13 },
   { id: 'ut29', city1: 'Winnipeg', city2: 'Houston', points: 12 },
-  { id: 'ut30', city1: 'Winnipeg', city2: 'Little Rock', points: 11 }
+  { id: 'ut30', city1: 'Winnipeg', city2: 'Little Rock', points: 11 },
+  { id: 'ut31', city1: 'Las Vegas', city2: 'Washington', points: 19 },
+  { id: 'ut32', city1: 'Omaha', city2: 'Richmond', points: 9 },
+  { id: 'ut33', city1: 'Saint Louis', city2: 'Raleigh', points: 5 },
+  { id: 'ut34', city1: 'Helena', city2: 'Charleston', points: 13 },
+  { id: 'ut35', city1: 'Pittsburgh', city2: 'Jacksonville', points: 6 },
+  { id: 'ut36', city1: 'Oklahoma City', city2: 'Toronto', points: 10 },
+  { id: 'ut37', city1: 'Salt Lake City', city2: 'Little Rock', points: 9 },
+  { id: 'ut38', city1: 'Omaha', city2: 'Dallas', points: 4 },
+  { id: 'ut39', city1: 'Kansas City', city2: 'Raleigh', points: 7 },
+  { id: 'ut40', city1: 'Helena', city2: 'Jacksonville', points: 13 }
 ];
