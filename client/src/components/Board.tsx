@@ -385,11 +385,15 @@ export const Board: React.FC<BoardProps> = ({
 
   const getGreyClaimOptions = (): CardColor[] => {
     if (!self || !selectedRoute || selectedRoute.color !== 'GREY') return [];
+    const reqEngines = selectedRoute.requiredEngines || 0;
+    const locomotivesAvailable = self.cards['LOCOMOTIVE'] || 0;
+    if (locomotivesAvailable < reqEngines) return [];
+
     const colors: CardColor[] = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'BLACK', 'ORANGE', 'WHITE', 'PURPLE'];
     return colors.filter(c => {
       const matchCards = self.cards[c] || 0;
-      const wildcards = self.cards['LOCOMOTIVE'] || 0;
-      return matchCards + wildcards >= selectedRoute.length;
+      const remainingLocomotives = locomotivesAvailable - reqEngines;
+      return matchCards + remainingLocomotives >= selectedRoute.length - reqEngines;
     });
   };
 
@@ -708,6 +712,21 @@ export const Board: React.FC<BoardProps> = ({
                       />
                     );
                   })()}
+                  {/* Dashed Gold Ring indicating station placement eligibility */}
+                  {isClickable && (
+                    <circle
+                      r="12"
+                      fill="none"
+                      stroke="#fbbf24"
+                      strokeWidth="1.5"
+                      strokeDasharray="3,3"
+                      className="animate-svg-pulse"
+                      style={{
+                        opacity: 0.7,
+                        filter: 'drop-shadow(0 0 4px #fbbf24)'
+                      }}
+                    />
+                  )}
                   {/* Subtle hover city circle */}
                   <circle
                     r="9"
@@ -875,6 +894,16 @@ export const Board: React.FC<BoardProps> = ({
             <span>Color: <strong style={{ color: getHexColor(hoveredRoute.color) }}>{hoveredRoute.color}</strong></span>
             <span>Points: <strong style={{ color: '#10b981' }}>{hoveredRoute.length === 6 ? 15 : hoveredRoute.length === 5 ? 10 : hoveredRoute.length === 4 ? 7 : hoveredRoute.length === 3 ? 4 : hoveredRoute.length === 2 ? 2 : 1}</strong></span>
           </div>
+          {(hoveredRoute.requiredEngines || 0) > 0 && (
+            <div style={{ marginTop: '6px', fontSize: '12px', color: '#fbbf24', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>🚢 Ferry (Locomotives Required: {hoveredRoute.requiredEngines})</span>
+            </div>
+          )}
+          {hoveredRoute.isTunnel && (
+            <div style={{ marginTop: '6px', fontSize: '12px', color: '#60a5fa', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>🚇 Tunnel (Testing draws 3 cards)</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -912,6 +941,17 @@ export const Board: React.FC<BoardProps> = ({
               Connect <strong style={{ color: '#fff' }}>{selectedRoute.city1}</strong> and <strong style={{ color: '#fff' }}>{selectedRoute.city2}</strong>. 
               Requires <strong style={{ color: getHexColor(selectedRoute.color) }}>{selectedRoute.length} {selectedRoute.color.toLowerCase()} tracks</strong>.
             </p>
+
+            {selectedRoute.requiredEngines ? (
+              <div style={{ marginBottom: '16px', padding: '8px 12px', background: 'rgba(251, 191, 36, 0.1)', border: '1px solid rgba(251, 191, 36, 0.2)', borderRadius: '8px', fontSize: '13px', color: '#fbbf24' }}>
+                🚢 <strong>Ferry Route:</strong> Requires at least <strong>{selectedRoute.requiredEngines} Locomotive card(s)</strong>.
+              </div>
+            ) : null}
+            {selectedRoute.isTunnel ? (
+              <div style={{ marginBottom: '16px', padding: '8px 12px', background: 'rgba(96, 165, 250, 0.1)', border: '1px solid rgba(96, 165, 250, 0.2)', borderRadius: '8px', fontSize: '13px', color: '#60a5fa' }}>
+                🚇 <strong>Tunnel Route:</strong> Claiming will test the tunnel by drawing 3 cards. Be prepared for potential extra costs!
+              </div>
+            ) : null}
 
             {selectedRoute.color === 'GREY' ? (
               <div style={{ marginBottom: '24px' }}>
@@ -960,7 +1000,14 @@ export const Board: React.FC<BoardProps> = ({
                     Have: {self.cards[selectedRoute.color as CardColor] || 0} + {self.cards['LOCOMOTIVE'] || 0} Wildcards
                   </span>
                   <span style={{ display: 'block', fontSize: '13px', color: '#10b981', marginTop: '2px' }}>
-                    {(self.cards[selectedRoute.color as CardColor] || 0) + (self.cards['LOCOMOTIVE'] || 0) >= selectedRoute.length ? '✅ Available' : '❌ Insufficient'}
+                    {(() => {
+                      const reqEngines = selectedRoute.requiredEngines || 0;
+                      const matchCards = self.cards[selectedRoute.color as CardColor] || 0;
+                      const locomotives = self.cards['LOCOMOTIVE'] || 0;
+                      if (locomotives < reqEngines) return '❌ Insufficient Wildcards';
+                      const remainingLocomotives = locomotives - reqEngines;
+                      return matchCards + remainingLocomotives >= selectedRoute.length - reqEngines ? '✅ Available' : '❌ Insufficient';
+                    })()}
                   </span>
                 </div>
               </div>
@@ -975,9 +1022,14 @@ export const Board: React.FC<BoardProps> = ({
                 style={{ flex: 1 }}
                 onClick={executeClaim}
                 disabled={
-                  !claimingColor ||
-                  (selectedRoute.color !== 'GREY' &&
-                    (self.cards[selectedRoute.color as CardColor] || 0) + (self.cards['LOCOMOTIVE'] || 0) < selectedRoute.length)
+                  !claimingColor || (() => {
+                    const reqEngines = selectedRoute.requiredEngines || 0;
+                    const matchCards = self.cards[claimingColor] || 0;
+                    const locomotives = self.cards['LOCOMOTIVE'] || 0;
+                    if (locomotives < reqEngines) return true;
+                    const remainingLocomotives = locomotives - reqEngines;
+                    return matchCards + remainingLocomotives < selectedRoute.length - reqEngines;
+                  })()
                 }
               >
                 <Sparkles size={16} /> Claim Route
@@ -1037,27 +1089,57 @@ export const Board: React.FC<BoardProps> = ({
                   </p>
 
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '24px' }}>
-                    {claim.drawnCards.map((card, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          width: '60px',
-                          height: '90px',
-                          borderRadius: '8px',
-                          border: `2px solid ${getHexColor(card)}`,
-                          background: `${getHexColor(card)}20`,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          filter: `drop-shadow(0 0 5px ${getHexColor(card)}40)`
-                        }}
-                      >
-                        <span style={{ fontSize: '10px', fontWeight: 'bold', color: getHexColor(card) }}>
-                          {card === 'LOCOMOTIVE' ? 'WILD' : card}
-                        </span>
-                      </div>
-                    ))}
+                    {claim.drawnCards.map((card, idx) => {
+                      const matchesClaimColor = (card === claim.cardColorToUse || card === 'LOCOMOTIVE');
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            width: '60px',
+                            height: '90px',
+                            borderRadius: '8px',
+                            border: matchesClaimColor ? '2.5px solid #ef4444' : `2px solid ${getHexColor(card)}`,
+                            background: matchesClaimColor ? 'rgba(239, 68, 68, 0.15)' : `${getHexColor(card)}20`,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            filter: matchesClaimColor ? 'drop-shadow(0 0 8px rgba(239, 68, 68, 0.6))' : `drop-shadow(0 0 5px ${getHexColor(card)}40)`,
+                            position: 'relative',
+                            animation: 'cardReveal 0.3s ease-out forwards',
+                            animationDelay: `${idx * 150}ms`,
+                            opacity: 0,
+                            transform: 'scale(0.8) translateY(10px)'
+                          }}
+                        >
+                          {matchesClaimColor && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: '-6px',
+                                right: '-6px',
+                                width: '18px',
+                                height: '18px',
+                                borderRadius: '50%',
+                                background: '#ef4444',
+                                color: '#fff',
+                                fontSize: '10px',
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                boxShadow: '0 0 5px rgba(239, 68, 68, 0.8)'
+                              }}
+                            >
+                              +1
+                            </div>
+                          )}
+                          <span style={{ fontSize: '10px', fontWeight: 'bold', color: matchesClaimColor ? '#ef4444' : getHexColor(card) }}>
+                            {card === 'LOCOMOTIVE' ? 'WILD' : card}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
 
                   <p style={{ fontSize: '15px', fontWeight: '600', marginBottom: '24px', color: claim.extraCost > 0 ? '#fbbf24' : '#10b981' }}>
