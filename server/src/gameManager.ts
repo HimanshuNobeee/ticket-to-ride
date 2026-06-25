@@ -829,6 +829,183 @@ export async function cancelTunnelClaimAction(roomId: string, playerId: string):
   return game;
 }
 
+// Place a Train Station in Europe map
+export async function placeStationAction(
+  roomId: string,
+  playerId: string,
+  cityName: string,
+  cardColor: CardColor
+): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
+  if (!game) return null;
+
+  // 1. Validate map type
+  if (game.mapType !== 'EUROPE') return null;
+
+  // 2. Validate turn
+  const activePlayer = game.players[game.turnIndex];
+  if (!activePlayer || activePlayer.id !== playerId) return null;
+
+  // 3. Validate game stage
+  if (game.gameStage !== 'PLAYING' && game.gameStage !== 'LAST_ROUND') return null;
+
+  // 4. Validate city existence and make sure it has no station placed
+  const cityExists = game.routes.some(r => r.city1 === cityName || r.city2 === cityName);
+  if (!cityExists) return null;
+
+  if (!game.stations) game.stations = {};
+  if (game.stations[cityName]) return null; // A station is already placed here
+
+  // 5. Validate player has stations left
+  if (activePlayer.stationsLeft === undefined) activePlayer.stationsLeft = 3;
+  if (activePlayer.stationsLeft <= 0) return null;
+
+  // 6. Calculate cost: 1st costs 1, 2nd costs 2, 3rd costs 3
+  const cost = 4 - activePlayer.stationsLeft;
+
+  // 7. Validate card cost
+  const normalAvailable = activePlayer.cards[cardColor] || 0;
+  const locoAvailable = activePlayer.cards['LOCOMOTIVE'] || 0;
+
+  if (cardColor === 'LOCOMOTIVE') {
+    if (locoAvailable < cost) return null; // Insufficient locomotives
+  } else {
+    if (normalAvailable + locoAvailable < cost) return null; // Insufficient cards
+  }
+
+  // 8. Deduct cards and push to discard
+  if (!game.discardPile) game.discardPile = [];
+
+  const normalUsed = cardColor === 'LOCOMOTIVE' ? 0 : Math.min(normalAvailable, cost);
+  const locoUsed = cost - normalUsed;
+
+  if (normalUsed > 0) {
+    activePlayer.cards[cardColor] -= normalUsed;
+    for (let i = 0; i < normalUsed; i++) {
+      game.discardPile.push(cardColor);
+    }
+  }
+
+  if (locoUsed > 0) {
+    activePlayer.cards['LOCOMOTIVE'] -= locoUsed;
+    for (let i = 0; i < locoUsed; i++) {
+      game.discardPile.push('LOCOMOTIVE');
+    }
+  }
+
+  // 9. Update state
+  activePlayer.stationsLeft--;
+  game.stations[cityName] = playerId;
+
+  game.history.push(
+    `🏰 ${activePlayer.name} placed a Train Station in ${cityName} using ${cost} ${cardColor} cards.`
+  );
+
+  checkAndRecycleDeck(game);
+  replenishFaceUpCards(game);
+
+  // 10. End Turn and save
+  endTurn(game);
+  await saveGame(roomId, game);
+  return game;
+}
+
+// Global Stations & Ticket Connection Path Optimizer for Europe
+function optimizeStationsAndTickets(
+  game: ActiveGame,
+  player: Player
+): { bestNetPoints: number; completedTicketIds: Set<string> } {
+  const playerRoutes = game.routes.filter(r => r.claimedBy === player.id);
+  
+  if (game.mapType !== 'EUROPE') {
+    let netPoints = 0;
+    const completedTicketIds = new Set<string>();
+    for (const ticket of player.destinationTickets) {
+      if (checkConnectivity(playerRoutes, ticket.city1, ticket.city2)) {
+        netPoints += ticket.points;
+        completedTicketIds.add(ticket.id);
+      } else {
+        netPoints -= ticket.points;
+      }
+    }
+    return { bestNetPoints: netPoints, completedTicketIds };
+  }
+
+  // Find all station cities placed by this player
+  const stationCities: string[] = [];
+  if (game.stations) {
+    for (const [cityName, ownerId] of Object.entries(game.stations)) {
+      if (ownerId === player.id) {
+        stationCities.push(cityName);
+      }
+    }
+  }
+
+  // For each station city, find all opponent claimed routes incident to it
+  const optionsPerStation: (Route | null)[][] = [];
+  for (const city of stationCities) {
+    const stationOptions: (Route | null)[] = [null];
+    for (const r of game.routes) {
+      if (r.claimedBy !== null && r.claimedBy !== player.id) {
+        if (r.city1 === city || r.city2 === city) {
+          if (!stationOptions.some(opt => opt && opt.id === r.id)) {
+            stationOptions.push(r);
+          }
+        }
+      }
+    }
+    optionsPerStation.push(stationOptions);
+  }
+
+  // Helper to generate Cartesian product
+  function getCombinations(index: number, current: (Route | null)[]): (Route | null)[][] {
+    if (index === optionsPerStation.length) {
+      return [current];
+    }
+    const results: (Route | null)[][] = [];
+    for (const opt of optionsPerStation[index]) {
+      results.push(...getCombinations(index + 1, [...current, opt]));
+    }
+    return results;
+  }
+
+  const combinations = getCombinations(0, []);
+  
+  let bestNetPoints = -99999;
+  let bestCompletedTicketIds = new Set<string>();
+
+  for (const combo of combinations) {
+    // Build effective routes list
+    const effectiveRoutes = [...playerRoutes];
+    for (const r of combo) {
+      if (r !== null) {
+        effectiveRoutes.push(r);
+      }
+    }
+
+    let netPoints = 0;
+    const completedTicketIds = new Set<string>();
+    for (const ticket of player.destinationTickets) {
+      if (checkConnectivity(effectiveRoutes, ticket.city1, ticket.city2)) {
+        netPoints += ticket.points;
+        completedTicketIds.add(ticket.id);
+      } else {
+        netPoints -= ticket.points;
+      }
+    }
+
+    if (netPoints > bestNetPoints) {
+      bestNetPoints = netPoints;
+      bestCompletedTicketIds = completedTicketIds;
+    }
+  }
+
+  return { 
+    bestNetPoints: bestNetPoints === -99999 ? 0 : bestNetPoints, 
+    completedTicketIds: bestCompletedTicketIds 
+  };
+}
+
 // Helper to transition turn
 function endTurn(game: ActiveGame) {
   game.drawCountThisTurn = 0;
@@ -873,29 +1050,36 @@ function endGame(game: ActiveGame) {
 
   // 1. Calculate destination ticket scores for each player
   for (const player of game.players) {
-    // Get routes claimed by this player
-    const playerRoutes = game.routes.filter((r: Route) => r.claimedBy === player.id);
-
-    let ticketScore = 0;
     game.history.push(`Scoring destinations for ${player.name}:`);
 
+    // Calculate original ticket points awarded during game
+    const midGameTicketPoints = player.destinationTickets
+      .filter(t => t.pointsAwarded)
+      .reduce((sum, t) => sum + t.points, 0);
+
+    const { bestNetPoints, completedTicketIds } = optimizeStationsAndTickets(game, player);
+
+    // Apply net adjustment
+    const adjustment = bestNetPoints - midGameTicketPoints;
+    player.points += adjustment;
+
+    // Update individual ticket status
     for (const ticket of player.destinationTickets) {
-      const connected = checkConnectivity(playerRoutes, ticket.city1, ticket.city2);
-      if (connected) {
-        if (!ticket.pointsAwarded) {
-          ticket.pointsAwarded = true;
-          player.points += ticket.points;
-          ticketScore += ticket.points;
-          game.history.push(`  ✅ Connected ${ticket.city1} - ${ticket.city2} (+${ticket.points} pts)`);
-        } else {
-          ticketScore += ticket.points;
-          game.history.push(`  ✅ Connected ${ticket.city1} - ${ticket.city2} (already credited during game)`);
-        }
+      const isCompleted = completedTicketIds.has(ticket.id);
+      ticket.pointsAwarded = isCompleted;
+      if (isCompleted) {
+        game.history.push(`  ✅ Connected ${ticket.city1} - ${ticket.city2} (+${ticket.points} pts)`);
       } else {
-        player.points -= ticket.points;
-        ticketScore -= ticket.points;
         game.history.push(`  ❌ Failed ${ticket.city1} - ${ticket.city2} (-${ticket.points} pts)`);
       }
+    }
+
+    // Award +4 points for each unused station
+    if (game.mapType === 'EUROPE') {
+      const unusedStations = player.stationsLeft ?? 3;
+      const unusedStationsBonus = unusedStations * 4;
+      player.points += unusedStationsBonus;
+      game.history.push(`  🏰 Unused Stations: ${unusedStations} left (+${unusedStationsBonus} pts)`);
     }
   }
 
@@ -946,14 +1130,8 @@ function endGame(game: ActiveGame) {
 
   // 4. Record high scores for all players in this game
   for (const player of game.players) {
-    const playerRoutes = game.routes.filter((r: Route) => r.claimedBy === player.id);
-    let ticketsCompleted = 0;
-    for (const ticket of player.destinationTickets) {
-      const connected = checkConnectivity(playerRoutes, ticket.city1, ticket.city2);
-      if (connected) {
-        ticketsCompleted++;
-      }
-    }
+    const { completedTicketIds } = optimizeStationsAndTickets(game, player);
+    const ticketsCompleted = completedTicketIds.size;
     updateHighScoreInDb(player.name, player.points, ticketsCompleted).catch(err => {
       console.error(`Failed to record high score for ${player.name}:`, err);
     });

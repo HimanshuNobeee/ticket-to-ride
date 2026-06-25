@@ -193,6 +193,32 @@ export const useGameSocket = () => {
     });
   };
 
+  const confirmTunnelClaim = () => {
+    if (!socketRef.current || !gameState) return;
+    socketRef.current.emit('confirm-tunnel-claim', {
+      roomId: gameState.roomId,
+      playerId
+    });
+  };
+
+  const cancelTunnelClaim = () => {
+    if (!socketRef.current || !gameState) return;
+    socketRef.current.emit('cancel-tunnel-claim', {
+      roomId: gameState.roomId,
+      playerId
+    });
+  };
+
+  const placeStation = (cityName: string, cardColor: CardColor) => {
+    if (!socketRef.current || !gameState) return;
+    socketRef.current.emit('place-station', {
+      roomId: gameState.roomId,
+      playerId,
+      cityName,
+      cardColor
+    });
+  };
+
   const leaveRoom = () => {
     if (!socketRef.current || !gameState) return;
     socketRef.current.emit('leave-room', { roomId: gameState.roomId, playerId });
@@ -225,6 +251,9 @@ export const useGameSocket = () => {
     drawDestinationTickets,
     chooseDestinationTickets,
     claimRoute,
+    confirmTunnelClaim,
+    cancelTunnelClaim,
+    placeStation,
     leaveRoom,
     kickPlayer,
     skipPlayerTurn,

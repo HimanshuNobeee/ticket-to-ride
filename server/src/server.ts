@@ -18,7 +18,10 @@ import {
   setMapType,
   kickPlayer,
   skipPlayerTurn,
-  cleanupExpiredGamesAction
+  cleanupExpiredGamesAction,
+  confirmTunnelClaimAction,
+  cancelTunnelClaimAction,
+  placeStationAction
 } from './gameManager.js';
 import { initDb, getTopHighScoresFromDb } from './db.js';
 
@@ -176,6 +179,33 @@ io.on('connection', (socket) => {
   socket.on('claim-route', async ({ roomId, playerId, routeId, cardColor }) => {
     const code = roomId.toUpperCase();
     const game = await claimRouteAction(code, playerId, routeId, cardColor);
+    if (game) {
+      io.to(code).emit('game-updated', game);
+    }
+  });
+
+  // 9b. Confirm Tunnel Claim
+  socket.on('confirm-tunnel-claim', async ({ roomId, playerId }) => {
+    const code = roomId.toUpperCase();
+    const game = await confirmTunnelClaimAction(code, playerId);
+    if (game) {
+      io.to(code).emit('game-updated', game);
+    }
+  });
+
+  // 9c. Cancel Tunnel Claim
+  socket.on('cancel-tunnel-claim', async ({ roomId, playerId }) => {
+    const code = roomId.toUpperCase();
+    const game = await cancelTunnelClaimAction(code, playerId);
+    if (game) {
+      io.to(code).emit('game-updated', game);
+    }
+  });
+
+  // 9d. Place Train Station
+  socket.on('place-station', async ({ roomId, playerId, cityName, cardColor }) => {
+    const code = roomId.toUpperCase();
+    const game = await placeStationAction(code, playerId, cityName, cardColor);
     if (game) {
       io.to(code).emit('game-updated', game);
     }

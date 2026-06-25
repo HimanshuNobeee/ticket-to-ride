@@ -55,6 +55,9 @@ function App() {
     drawDestinationTickets,
     chooseDestinationTickets,
     claimRoute,
+    confirmTunnelClaim,
+    cancelTunnelClaim,
+    placeStation,
     leaveRoom,
     kickPlayer,
     skipPlayerTurn,
@@ -350,6 +353,9 @@ function App() {
             claimRoute={claimRoute}
             setError={setError}
             highlightedCities={highlightedCities}
+            confirmTunnelClaim={confirmTunnelClaim}
+            cancelTunnelClaim={cancelTunnelClaim}
+            placeStation={placeStation}
           />
         </div>
 

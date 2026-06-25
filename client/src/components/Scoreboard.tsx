@@ -173,11 +173,16 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
               {/* Player Asset inventories */}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94a3b8', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px', marginTop: '2px' }}>
                 <span title="Trains Remaining">
-                  🚂 <strong style={{ color: p.trainsLeft <= 5 ? '#ef4444' : '#f1f5f9' }}>{p.trainsLeft}</strong> cars left
+                  🚂 <strong style={{ color: p.trainsLeft <= 5 ? '#ef4444' : '#f1f5f9' }}>{p.trainsLeft}</strong> cars
                 </span>
                 <span title="Cards in Hand">
                   🎴 <strong>{cardCount}</strong> cards
                 </span>
+                {gameState.mapType === 'EUROPE' && p.stationsLeft !== undefined && (
+                  <span title="Stations Left">
+                    🏰 <strong>{p.stationsLeft}</strong> stations
+                  </span>
+                )}
                 <span title="Tickets Held">
                   🎫 <strong>{p.destinationTickets.length}</strong> tickets
                 </span>
@@ -191,7 +196,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                   </div>
                   {p.destinationTickets.map(t => {
                     const playerRoutes = gameState.routes.filter(r => r.claimedBy === p.id);
-                    const connected = isTicketConnected(playerRoutes, t);
+                    const connected = gameState.gameStage === 'GAME_OVER' ? !!t.pointsAwarded : isTicketConnected(playerRoutes, t);
                     return (
                       <div
                         key={t.id}
