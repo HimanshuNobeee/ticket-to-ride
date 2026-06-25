@@ -1,155 +1,1531 @@
 import type { City, Route, DestinationTicket } from './gameData.js';
 
 export const EUROPE_CITIES: City[] = [
-  { name: 'Lisbon', x: 100, y: 780 },
-  { name: 'Madrid', x: 200, y: 740 },
-  { name: 'Barcelona', x: 320, y: 690 },
-  { name: 'Marseille', x: 450, y: 600 },
-  { name: 'Paris', x: 420, y: 440 },
-  { name: 'London', x: 350, y: 290 },
-  { name: 'Edinburgh', x: 320, y: 140 },
-  { name: 'Dublin', x: 220, y: 240 },
-  { name: 'Brest', x: 280, y: 430 },
-  { name: 'Brussels', x: 470, y: 370 },
-  { name: 'Amsterdam', x: 510, y: 310 },
-  { name: 'Hamburg', x: 610, y: 260 },
-  { name: 'Copenhagen', x: 630, y: 150 },
-  { name: 'Oslo', x: 590, y: 50 },
-  { name: 'Stockholm', x: 710, y: 50 },
-  { name: 'Berlin', x: 690, y: 300 },
-  { name: 'Frankfurt', x: 570, y: 420 },
-  { name: 'Munich', x: 630, y: 480 },
-  { name: 'Zurich', x: 540, y: 520 },
-  { name: 'Milan', x: 580, y: 590 },
-  { name: 'Venice', x: 650, y: 590 },
-  { name: 'Rome', x: 660, y: 720 },
-  { name: 'Palermo', x: 690, y: 820 },
-  { name: 'Athens', x: 880, y: 800 },
-  { name: 'Vienna', x: 750, y: 480 },
-  { name: 'Warsaw', x: 830, y: 300 },
-  { name: 'Danzig', x: 790, y: 220 },
-  { name: 'Riga', x: 890, y: 170 },
-  { name: 'St. Petersburg', x: 1050, y: 70 },
-  { name: 'Moscow', x: 1140, y: 170 },
-  { name: 'Kyiv', x: 1010, y: 380 },
-  { name: 'Budapest', x: 820, y: 510 },
-  { name: 'Bucharest', x: 940, y: 560 },
-  { name: 'Sofia', x: 890, y: 650 },
-  { name: 'Constantinople', x: 1040, y: 690 }
+  {
+    "name": "Lisboa",
+    "x": 35,
+    "y": 790
+  },
+  {
+    "name": "Cadiz",
+    "x": 80,
+    "y": 860
+  },
+  {
+    "name": "Madrid",
+    "x": 110,
+    "y": 730
+  },
+  {
+    "name": "Barcelona",
+    "x": 230,
+    "y": 690
+  },
+  {
+    "name": "Pamplona",
+    "x": 140,
+    "y": 630
+  },
+  {
+    "name": "Marseille",
+    "x": 340,
+    "y": 680
+  },
+  {
+    "name": "Paris",
+    "x": 190,
+    "y": 480
+  },
+  {
+    "name": "Brest",
+    "x": 40,
+    "y": 470
+  },
+  {
+    "name": "Dieppe",
+    "x": 140,
+    "y": 380
+  },
+  {
+    "name": "Zurich",
+    "x": 320,
+    "y": 520
+  },
+  {
+    "name": "London",
+    "x": 80,
+    "y": 200
+  },
+  {
+    "name": "Edinburgh",
+    "x": 50,
+    "y": 60
+  },
+  {
+    "name": "Venezia",
+    "x": 440,
+    "y": 570
+  },
+  {
+    "name": "Roma",
+    "x": 450,
+    "y": 750
+  },
+  {
+    "name": "Munchen",
+    "x": 430,
+    "y": 470
+  },
+  {
+    "name": "Frankfurt",
+    "x": 380,
+    "y": 390
+  },
+  {
+    "name": "Bruxelles",
+    "x": 270,
+    "y": 340
+  },
+  {
+    "name": "Amsterdam",
+    "x": 290,
+    "y": 260
+  },
+  {
+    "name": "Essen",
+    "x": 450,
+    "y": 240
+  },
+  {
+    "name": "Berlin",
+    "x": 551,
+    "y": 290
+  },
+  {
+    "name": "Wien",
+    "x": 570,
+    "y": 450
+  },
+  {
+    "name": "Zagrab",
+    "x": 550,
+    "y": 540
+  },
+  {
+    "name": "Budapest",
+    "x": 674,
+    "y": 485
+  },
+  {
+    "name": "Brindisi",
+    "x": 630,
+    "y": 740
+  },
+  {
+    "name": "Palermo",
+    "x": 510,
+    "y": 850
+  },
+  {
+    "name": "Sarajevo",
+    "x": 660,
+    "y": 608
+  },
+  {
+    "name": "Athina",
+    "x": 776,
+    "y": 807
+  },
+  {
+    "name": "Sofia",
+    "x": 776,
+    "y": 647
+  },
+  {
+    "name": "Smyrna",
+    "x": 850,
+    "y": 792
+  },
+  {
+    "name": "Constantinople",
+    "x": 890,
+    "y": 704
+  },
+  {
+    "name": "Bucuresti",
+    "x": 827,
+    "y": 589
+  },
+  {
+    "name": "Kyiv",
+    "x": 924,
+    "y": 370
+  },
+  {
+    "name": "Warzawa",
+    "x": 717,
+    "y": 310
+  },
+  {
+    "name": "Sevastopol",
+    "x": 988,
+    "y": 583
+  },
+  {
+    "name": "Angora",
+    "x": 974,
+    "y": 741
+  },
+  {
+    "name": "Erzurum",
+    "x": 1157,
+    "y": 741
+  },
+  {
+    "name": "Sochi",
+    "x": 1124,
+    "y": 617
+  },
+  {
+    "name": "Rostov",
+    "x": 1123,
+    "y": 494
+  },
+  {
+    "name": "Kharkov",
+    "x": 1048,
+    "y": 401
+  },
+  {
+    "name": "Moskva",
+    "x": 1078,
+    "y": 180
+  },
+  {
+    "name": "Smolensk",
+    "x": 957,
+    "y": 210
+  },
+  {
+    "name": "Wilno",
+    "x": 810,
+    "y": 220
+  },
+  {
+    "name": "Petrograd",
+    "x": 919,
+    "y": 50
+  },
+  {
+    "name": "Stockholm",
+    "x": 653,
+    "y": 60
+  },
+  {
+    "name": "Riga",
+    "x": 784,
+    "y": 140
+  },
+  {
+    "name": "Danzic",
+    "x": 665,
+    "y": 230
+  },
+  {
+    "name": "Khobenhaven",
+    "x": 533,
+    "y": 180
+  }
 ];
 
 export const EUROPE_ROUTES: Route[] = [
-  // West Europe / Iberia
-  { id: 'lis_mad', city1: 'Lisbon', city2: 'Madrid', length: 3, color: 'ORANGE', claimedBy: null },
-  { id: 'mad_bar', city1: 'Madrid', city2: 'Barcelona', length: 2, color: 'YELLOW', claimedBy: null },
-  { id: 'mad_mar', city1: 'Madrid', city2: 'Marseille', length: 4, color: 'BLACK', claimedBy: null },
-  { id: 'bar_mar', city1: 'Barcelona', city2: 'Marseille', length: 3, color: 'GREY', claimedBy: null },
-  { id: 'mar_par', city1: 'Marseille', city2: 'Paris', length: 4, color: 'BLUE', claimedBy: null },
-  { id: 'mar_mil', city1: 'Marseille', city2: 'Milan', length: 3, color: 'WHITE', claimedBy: null },
-  { id: 'par_bre', city1: 'Paris', city2: 'Brest', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'par_bru1', city1: 'Paris', city2: 'Brussels', length: 2, color: 'GREEN', claimedBy: null },
-  { id: 'par_bru2', city1: 'Paris', city2: 'Brussels', length: 2, color: 'YELLOW', claimedBy: null },
-  { id: 'par_fra1', city1: 'Paris', city2: 'Frankfurt', length: 3, color: 'ORANGE', claimedBy: null },
-  { id: 'par_fra2', city1: 'Paris', city2: 'Frankfurt', length: 3, color: 'WHITE', claimedBy: null },
-  { id: 'par_zur', city1: 'Paris', city2: 'Zurich', length: 3, color: 'GREY', claimedBy: null },
-  { id: 'bre_lon', city1: 'Brest', city2: 'London', length: 2, color: 'BLUE', claimedBy: null },
-
-  // British Isles & North Sea
-  { id: 'lon_dub', city1: 'London', city2: 'Dublin', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'dub_edi', city1: 'Dublin', city2: 'Edinburgh', length: 2, color: 'BLACK', claimedBy: null },
-  { id: 'lon_edi', city1: 'London', city2: 'Edinburgh', length: 4, color: 'ORANGE', claimedBy: null },
-  { id: 'lon_par1', city1: 'London', city2: 'Paris', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'lon_par2', city1: 'London', city2: 'Paris', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'lon_ams', city1: 'London', city2: 'Amsterdam', length: 2, color: 'WHITE', claimedBy: null },
-  { id: 'bru_ams', city1: 'Brussels', city2: 'Amsterdam', length: 1, color: 'GREY', claimedBy: null },
-  { id: 'bru_fra', city1: 'Brussels', city2: 'Frankfurt', length: 2, color: 'BLUE', claimedBy: null },
-  { id: 'ams_ham', city1: 'Amsterdam', city2: 'Hamburg', length: 3, color: 'YELLOW', claimedBy: null },
-
-  // Central Europe
-  { id: 'fra_ham', city1: 'Frankfurt', city2: 'Hamburg', length: 3, color: 'PURPLE', claimedBy: null },
-  { id: 'fra_ber', city1: 'Frankfurt', city2: 'Berlin', length: 3, color: 'RED', claimedBy: null },
-  { id: 'fra_mun', city1: 'Frankfurt', city2: 'Munich', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'fra_zur', city1: 'Frankfurt', city2: 'Zurich', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'mun_zur', city1: 'Munich', city2: 'Zurich', length: 1, color: 'YELLOW', claimedBy: null },
-  { id: 'mun_ven', city1: 'Munich', city2: 'Venice', length: 2, color: 'BLUE', claimedBy: null },
-  { id: 'mun_vie', city1: 'Munich', city2: 'Vienna', length: 3, color: 'WHITE', claimedBy: null },
-  { id: 'mun_ber', city1: 'Munich', city2: 'Berlin', length: 3, color: 'BLACK', claimedBy: null },
-
-  // Scandinavia
-  { id: 'ham_cop', city1: 'Hamburg', city2: 'Copenhagen', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'ham_ber', city1: 'Hamburg', city2: 'Berlin', length: 2, color: 'RED', claimedBy: null },
-  { id: 'cop_osl', city1: 'Copenhagen', city2: 'Oslo', length: 3, color: 'BLUE', claimedBy: null },
-  { id: 'cop_sto', city1: 'Copenhagen', city2: 'Stockholm', length: 3, color: 'YELLOW', claimedBy: null },
-  { id: 'osl_sto', city1: 'Oslo', city2: 'Stockholm', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'sto_stp', city1: 'Stockholm', city2: 'St. Petersburg', length: 4, color: 'WHITE', claimedBy: null },
-
-  // East Europe / Baltics
-  { id: 'ber_dan', city1: 'Berlin', city2: 'Danzig', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'ber_war1', city1: 'Berlin', city2: 'Warsaw', length: 3, color: 'ORANGE', claimedBy: null },
-  { id: 'ber_war2', city1: 'Berlin', city2: 'Warsaw', length: 3, color: 'GREY', claimedBy: null },
-  { id: 'ber_vie', city1: 'Berlin', city2: 'Vienna', length: 3, color: 'GREEN', claimedBy: null },
-  { id: 'dan_war', city1: 'Danzig', city2: 'Warsaw', length: 2, color: 'RED', claimedBy: null },
-  { id: 'dan_rig', city1: 'Danzig', city2: 'Riga', length: 3, color: 'GREY', claimedBy: null },
-  { id: 'rig_stp', city1: 'Riga', city2: 'St. Petersburg', length: 4, color: 'RED', claimedBy: null },
-  { id: 'rig_war', city1: 'Riga', city2: 'Warsaw', length: 3, color: 'WHITE', claimedBy: null },
-  { id: 'stp_mos', city1: 'St. Petersburg', city2: 'Moscow', length: 4, color: 'BLACK', claimedBy: null },
-  { id: 'stp_kyi', city1: 'St. Petersburg', city2: 'Kyiv', length: 5, color: 'GREY', claimedBy: null },
-  { id: 'mos_kyi', city1: 'Moscow', city2: 'Kyiv', length: 4, color: 'BLUE', claimedBy: null },
-  { id: 'war_kyi', city1: 'Warsaw', city2: 'Kyiv', length: 3, color: 'GREY', claimedBy: null },
-
-  // Southeast Europe & Balkans
-  { id: 'war_bud', city1: 'Warsaw', city2: 'Budapest', length: 3, color: 'YELLOW', claimedBy: null },
-  { id: 'vie_bud1', city1: 'Vienna', city2: 'Budapest', length: 2, color: 'RED', claimedBy: null },
-  { id: 'vie_bud2', city1: 'Vienna', city2: 'Budapest', length: 2, color: 'WHITE', claimedBy: null },
-  { id: 'vie_war', city1: 'Vienna', city2: 'Warsaw', length: 3, color: 'BLUE', claimedBy: null },
-  { id: 'ven_mil', city1: 'Venice', city2: 'Milan', length: 2, color: 'WHITE', claimedBy: null },
-  { id: 'ven_rom', city1: 'Venice', city2: 'Rome', length: 2, color: 'PURPLE', claimedBy: null },
-  { id: 'mil_zur', city1: 'Milan', city2: 'Zurich', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'mil_rom', city1: 'Milan', city2: 'Rome', length: 3, color: 'BLACK', claimedBy: null },
-  { id: 'rom_pal', city1: 'Rome', city2: 'Palermo', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'pal_ath', city1: 'Palermo', city2: 'Athens', length: 4, color: 'GREY', claimedBy: null },
-  { id: 'rom_ath', city1: 'Rome', city2: 'Athens', length: 5, color: 'BLUE', claimedBy: null },
-  { id: 'ven_bud', city1: 'Venice', city2: 'Budapest', length: 4, color: 'ORANGE', claimedBy: null },
-  { id: 'bud_kyi', city1: 'Budapest', city2: 'Kyiv', length: 3, color: 'GREY', claimedBy: null },
-  { id: 'bud_buc', city1: 'Budapest', city2: 'Bucharest', length: 3, color: 'PURPLE', claimedBy: null },
-  { id: 'bud_sof', city1: 'Budapest', city2: 'Sofia', length: 3, color: 'GREEN', claimedBy: null },
-  { id: 'sof_buc', city1: 'Sofia', city2: 'Bucharest', length: 2, color: 'GREY', claimedBy: null },
-  { id: 'sof_ath', city1: 'Sofia', city2: 'Athens', length: 3, color: 'YELLOW', claimedBy: null },
-  { id: 'sof_con', city1: 'Sofia', city2: 'Constantinople', length: 3, color: 'BLUE', claimedBy: null },
-  { id: 'buc_kyi', city1: 'Bucharest', city2: 'Kyiv', length: 3, color: 'WHITE', claimedBy: null },
-  { id: 'buc_con', city1: 'Bucharest', city2: 'Constantinople', length: 3, color: 'YELLOW', claimedBy: null },
-  { id: 'kyi_con', city1: 'Kyiv', city2: 'Constantinople', length: 4, color: 'GREY', claimedBy: null }
+  {
+    "id": "lis_cad",
+    "city1": "Lisboa",
+    "city2": "Cadiz",
+    "length": 2,
+    "color": "BLUE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mad_lis",
+    "city1": "Madrid",
+    "city2": "Lisboa",
+    "length": 3,
+    "color": "PURPLE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mad_cad",
+    "city1": "Madrid",
+    "city2": "Cadiz",
+    "length": 3,
+    "color": "ORANGE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mad_pam1",
+    "city1": "Madrid",
+    "city2": "Pamplona",
+    "length": 3,
+    "color": "BLACK",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mad_pam2",
+    "city1": "Madrid",
+    "city2": "Pamplona",
+    "length": 3,
+    "color": "WHITE",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mad_bar",
+    "city1": "Madrid",
+    "city2": "Barcelona",
+    "length": 2,
+    "color": "YELLOW",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mar_pam",
+    "city1": "Marseille",
+    "city2": "Pamplona",
+    "length": 4,
+    "color": "RED",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mar_bar",
+    "city1": "Marseille",
+    "city2": "Barcelona",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "pam_bar",
+    "city1": "Pamplona",
+    "city2": "Barcelona",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "pam_bre",
+    "city1": "Pamplona",
+    "city2": "Brest",
+    "length": 4,
+    "color": "PURPLE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "par_pam1",
+    "city1": "Paris",
+    "city2": "Pamplona",
+    "length": 4,
+    "color": "BLUE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "par_pam2",
+    "city1": "Paris",
+    "city2": "Pamplona",
+    "length": 4,
+    "color": "GREEN",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "par_mar",
+    "city1": "Paris",
+    "city2": "Marseille",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "par_bre",
+    "city1": "Paris",
+    "city2": "Brest",
+    "length": 3,
+    "color": "BLACK",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "par_die",
+    "city1": "Paris",
+    "city2": "Dieppe",
+    "length": 1,
+    "color": "PURPLE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "par_zur",
+    "city1": "Paris",
+    "city2": "Zurich",
+    "length": 3,
+    "color": "GREY",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "die_lon1",
+    "city1": "Dieppe",
+    "city2": "London",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 1,
+    "claimedBy": null
+  },
+  {
+    "id": "die_lon2",
+    "city1": "Dieppe",
+    "city2": "London",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 1,
+    "claimedBy": null
+  },
+  {
+    "id": "die_bre",
+    "city1": "Dieppe",
+    "city2": "Brest",
+    "length": 2,
+    "color": "ORANGE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "lon_edi1",
+    "city1": "London",
+    "city2": "Edinburgh",
+    "length": 4,
+    "color": "ORANGE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "lon_edi2",
+    "city1": "London",
+    "city2": "Edinburgh",
+    "length": 4,
+    "color": "BLACK",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "zur_mar",
+    "city1": "Zurich",
+    "city2": "Marseille",
+    "length": 2,
+    "color": "PURPLE",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "zur_ven",
+    "city1": "Zurich",
+    "city2": "Venezia",
+    "length": 2,
+    "color": "GREEN",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mar_rom",
+    "city1": "Marseille",
+    "city2": "Roma",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "ven_rom",
+    "city1": "Venezia",
+    "city2": "Roma",
+    "length": 2,
+    "color": "BLACK",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "zur_mun",
+    "city1": "Zurich",
+    "city2": "Munchen",
+    "length": 2,
+    "color": "YELLOW",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mun_ven",
+    "city1": "Munchen",
+    "city2": "Venezia",
+    "length": 2,
+    "color": "BLUE",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mun_fra",
+    "city1": "Munchen",
+    "city2": "Frankfurt",
+    "length": 2,
+    "color": "PURPLE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "fra_par1",
+    "city1": "Frankfurt",
+    "city2": "Paris",
+    "length": 3,
+    "color": "WHITE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "fra_par2",
+    "city1": "Frankfurt",
+    "city2": "Paris",
+    "length": 3,
+    "color": "ORANGE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "fra_bru",
+    "city1": "Frankfurt",
+    "city2": "Bruxelles",
+    "length": 2,
+    "color": "BLUE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "bru_par1",
+    "city1": "Bruxelles",
+    "city2": "Paris",
+    "length": 2,
+    "color": "YELLOW",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "bru_par2",
+    "city1": "Bruxelles",
+    "city2": "Paris",
+    "length": 2,
+    "color": "RED",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "bru_die",
+    "city1": "Bruxelles",
+    "city2": "Dieppe",
+    "length": 2,
+    "color": "GREEN",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "bru_ams",
+    "city1": "Bruxelles",
+    "city2": "Amsterdam",
+    "length": 1,
+    "color": "BLACK",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "ams_lon",
+    "city1": "Amsterdam",
+    "city2": "London",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 2,
+    "claimedBy": null
+  },
+  {
+    "id": "ams_fra",
+    "city1": "Amsterdam",
+    "city2": "Frankfurt",
+    "length": 2,
+    "color": "WHITE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "fra_ess",
+    "city1": "Frankfurt",
+    "city2": "Essen",
+    "length": 2,
+    "color": "GREEN",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "ams_ess",
+    "city1": "Amsterdam",
+    "city2": "Essen",
+    "length": 3,
+    "color": "YELLOW",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mun_wie",
+    "city1": "Munchen",
+    "city2": "Wien",
+    "length": 3,
+    "color": "ORANGE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "ber_wie",
+    "city1": "Berlin",
+    "city2": "Wien",
+    "length": 3,
+    "color": "GREEN",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "ber_ess",
+    "city1": "Berlin",
+    "city2": "Essen",
+    "length": 2,
+    "color": "BLUE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "ber_fra1",
+    "city1": "Berlin",
+    "city2": "Frankfurt",
+    "length": 3,
+    "color": "RED",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "ber_fra2",
+    "city1": "Berlin",
+    "city2": "Frankfurt",
+    "length": 3,
+    "color": "BLACK",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "wie_zag",
+    "city1": "Wien",
+    "city2": "Zagrab",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "zag_ven",
+    "city1": "Zagrab",
+    "city2": "Venezia",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "rom_bri",
+    "city1": "Roma",
+    "city2": "Brindisi",
+    "length": 2,
+    "color": "WHITE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "rom_pal",
+    "city1": "Roma",
+    "city2": "Palermo",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 1,
+    "claimedBy": null
+  },
+  {
+    "id": "bri_pal",
+    "city1": "Brindisi",
+    "city2": "Palermo",
+    "length": 3,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 1,
+    "claimedBy": null
+  },
+  {
+    "id": "bud_zag",
+    "city1": "Budapest",
+    "city2": "Zagrab",
+    "length": 2,
+    "color": "ORANGE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "bud_wie1",
+    "city1": "Budapest",
+    "city2": "Wien",
+    "length": 1,
+    "color": "RED",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "bud_wie2",
+    "city1": "Budapest",
+    "city2": "Wien",
+    "length": 1,
+    "color": "WHITE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "zag_sar",
+    "city1": "Zagrab",
+    "city2": "Sarajevo",
+    "length": 3,
+    "color": "RED",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "sar_ath",
+    "city1": "Sarajevo",
+    "city2": "Athina",
+    "length": 4,
+    "color": "GREEN",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "bud_sar",
+    "city1": "Budapest",
+    "city2": "Sarajevo",
+    "length": 3,
+    "color": "PURPLE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "bri_ath",
+    "city1": "Brindisi",
+    "city2": "Athina",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 1,
+    "claimedBy": null
+  },
+  {
+    "id": "ath_sof",
+    "city1": "Athina",
+    "city2": "Sofia",
+    "length": 3,
+    "color": "PURPLE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "sof_sar",
+    "city1": "Sofia",
+    "city2": "Sarajevo",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "sof_con",
+    "city1": "Sofia",
+    "city2": "Constantinople",
+    "length": 3,
+    "color": "BLUE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "ath_smy",
+    "city1": "Athina",
+    "city2": "Smyrna",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 1,
+    "claimedBy": null
+  },
+  {
+    "id": "smy_con",
+    "city1": "Smyrna",
+    "city2": "Constantinople",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "con_buc",
+    "city1": "Constantinople",
+    "city2": "Bucuresti",
+    "length": 3,
+    "color": "YELLOW",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "buc_sof",
+    "city1": "Bucuresti",
+    "city2": "Sofia",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "buc_bud",
+    "city1": "Bucuresti",
+    "city2": "Budapest",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "bud_kyi",
+    "city1": "Budapest",
+    "city2": "Kyiv",
+    "length": 6,
+    "color": "GREY",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "buc_kyi",
+    "city1": "Bucuresti",
+    "city2": "Kyiv",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "kyi_war",
+    "city1": "Kyiv",
+    "city2": "Warzawa",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "war_ber1",
+    "city1": "Warzawa",
+    "city2": "Berlin",
+    "length": 4,
+    "color": "PURPLE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "war_ber2",
+    "city1": "Warzawa",
+    "city2": "Berlin",
+    "length": 4,
+    "color": "YELLOW",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "war_wie",
+    "city1": "Warzawa",
+    "city2": "Wien",
+    "length": 4,
+    "color": "BLUE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "con_ang",
+    "city1": "Constantinople",
+    "city2": "Angora",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "smy_ang",
+    "city1": "Smyrna",
+    "city2": "Angora",
+    "length": 3,
+    "color": "ORANGE",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "ang_erz",
+    "city1": "Angora",
+    "city2": "Erzurum",
+    "length": 3,
+    "color": "BLACK",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "sev_con",
+    "city1": "Sevastopol",
+    "city2": "Constantinople",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 2,
+    "claimedBy": null
+  },
+  {
+    "id": "sev_erz",
+    "city1": "Sevastopol",
+    "city2": "Erzurum",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 2,
+    "claimedBy": null
+  },
+  {
+    "id": "soc_erz",
+    "city1": "Sochi",
+    "city2": "Erzurum",
+    "length": 3,
+    "color": "RED",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "sev_soc",
+    "city1": "Sevastopol",
+    "city2": "Sochi",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 1,
+    "claimedBy": null
+  },
+  {
+    "id": "soc_ros",
+    "city1": "Sochi",
+    "city2": "Rostov",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "sev_ros",
+    "city1": "Sevastopol",
+    "city2": "Rostov",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "ros_kha",
+    "city1": "Rostov",
+    "city2": "Kharkov",
+    "length": 2,
+    "color": "GREEN",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "kha_kyi",
+    "city1": "Kharkov",
+    "city2": "Kyiv",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "kha_mos",
+    "city1": "Kharkov",
+    "city2": "Moskva",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "sev_buc",
+    "city1": "Sevastopol",
+    "city2": "Bucuresti",
+    "length": 4,
+    "color": "WHITE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mos_smo",
+    "city1": "Moskva",
+    "city2": "Smolensk",
+    "length": 2,
+    "color": "ORANGE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "mos_pet",
+    "city1": "Moskva",
+    "city2": "Petrograd",
+    "length": 4,
+    "color": "WHITE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "pet_wil",
+    "city1": "Petrograd",
+    "city2": "Wilno",
+    "length": 4,
+    "color": "BLUE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "pet_rig",
+    "city1": "Petrograd",
+    "city2": "Riga",
+    "length": 4,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "pet_sto",
+    "city1": "Petrograd",
+    "city2": "Stockholm",
+    "length": 8,
+    "color": "GREY",
+    "isTunnel": true,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "sto_kho1",
+    "city1": "Stockholm",
+    "city2": "Khobenhaven",
+    "length": 3,
+    "color": "YELLOW",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "sto_kho2",
+    "city1": "Stockholm",
+    "city2": "Khobenhaven",
+    "length": 3,
+    "color": "WHITE",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "kho_ess1",
+    "city1": "Khobenhaven",
+    "city2": "Essen",
+    "length": 3,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 1,
+    "claimedBy": null
+  },
+  {
+    "id": "kho_ess2",
+    "city1": "Khobenhaven",
+    "city2": "Essen",
+    "length": 3,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 1,
+    "claimedBy": null
+  },
+  {
+    "id": "rig_dan",
+    "city1": "Riga",
+    "city2": "Danzic",
+    "length": 3,
+    "color": "BLACK",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "dan_ber",
+    "city1": "Danzic",
+    "city2": "Berlin",
+    "length": 3,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "dan_war",
+    "city1": "Danzic",
+    "city2": "Warzawa",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "war_wil",
+    "city1": "Warzawa",
+    "city2": "Wilno",
+    "length": 3,
+    "color": "RED",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "wil_rig",
+    "city1": "Wilno",
+    "city2": "Riga",
+    "length": 4,
+    "color": "GREEN",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "wil_smo",
+    "city1": "Wilno",
+    "city2": "Smolensk",
+    "length": 3,
+    "color": "YELLOW",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "wil_kyi",
+    "city1": "Wilno",
+    "city2": "Kyiv",
+    "length": 2,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "smo_kyi",
+    "city1": "Smolensk",
+    "city2": "Kyiv",
+    "length": 3,
+    "color": "RED",
+    "isTunnel": false,
+    "requiredEngines": 0,
+    "claimedBy": null
+  },
+  {
+    "id": "pal_ath",
+    "city1": "Palermo",
+    "city2": "Athina",
+    "length": 6,
+    "color": "GREY",
+    "isTunnel": false,
+    "requiredEngines": 2,
+    "claimedBy": null
+  }
 ];
 
 export const EUROPE_DESTINATION_TICKETS: DestinationTicket[] = [
-  { id: 'et1', city1: 'London', city2: 'Constantinople', points: 20 },
-  { id: 'et2', city1: 'Edinburgh', city2: 'Athens', points: 21 },
-  { id: 'et3', city1: 'Brest', city2: 'St. Petersburg', points: 20 },
-  { id: 'et4', city1: 'Lisbon', city2: 'Moscow', points: 22 },
-  { id: 'et5', city1: 'Madrid', city2: 'Berlin', points: 12 },
-  { id: 'et6', city1: 'Dublin', city2: 'Paris', points: 7 },
-  { id: 'et7', city1: 'London', city2: 'Berlin', points: 8 },
-  { id: 'et8', city1: 'Paris', city2: 'Rome', points: 9 },
-  { id: 'et9', city1: 'Amsterdam', city2: 'Venice', points: 6 },
-  { id: 'et10', city1: 'Hamburg', city2: 'Munich', points: 5 },
-  { id: 'et11', city1: 'Copenhagen', city2: 'Oslo', points: 4 },
-  { id: 'et12', city1: 'Stockholm', city2: 'Riga', points: 5 },
-  { id: 'et13', city1: 'Berlin', city2: 'Moscow', points: 12 },
-  { id: 'et14', city1: 'Warsaw', city2: 'Kyiv', points: 6 },
-  { id: 'et15', city1: 'Frankfurt', city2: 'Budapest', points: 8 },
-  { id: 'et16', city1: 'Munich', city2: 'Constantinople', points: 13 },
-  { id: 'et17', city1: 'Vienna', city2: 'Sofia', points: 8 },
-  { id: 'et18', city1: 'Rome', city2: 'Athens', points: 8 },
-  { id: 'et19', city1: 'Palermo', city2: 'Constantinople', points: 11 },
-  { id: 'et20', city1: 'Brest', city2: 'Marseille', points: 6 },
-  { id: 'et21', city1: 'Brussels', city2: 'Stockholm', points: 12 },
-  { id: 'et22', city1: 'Paris', city2: 'Warsaw', points: 11 },
-  { id: 'et23', city1: 'Barcelona', city2: 'Munich', points: 10 },
-  { id: 'et24', city1: 'Marseille', city2: 'Vienna', points: 8 },
-  { id: 'et25', city1: 'Venice', city2: 'Kyiv', points: 11 },
-  { id: 'et26', city1: 'Danzig', city2: 'Bucharest', points: 9 },
-  { id: 'et27', city1: 'Kyiv', city2: 'Athens', points: 10 },
-  { id: 'et28', city1: 'Bucharest', city2: 'Constantinople', points: 5 },
-  { id: 'et29', city1: 'Madrid', city2: 'Rome', points: 10 },
-  { id: 'et30', city1: 'Amsterdam', city2: 'Hamburg', points: 4 }
+  {
+    "id": "et1",
+    "city1": "Venezia",
+    "city2": "Constantinople",
+    "points": 10
+  },
+  {
+    "id": "et2",
+    "city1": "London",
+    "city2": "Wien",
+    "points": 10
+  },
+  {
+    "id": "et3",
+    "city1": "Angora",
+    "city2": "Kharkov",
+    "points": 10
+  },
+  {
+    "id": "et4",
+    "city1": "Essen",
+    "city2": "Kyiv",
+    "points": 10
+  },
+  {
+    "id": "et5",
+    "city1": "Riga",
+    "city2": "Bucuresti",
+    "points": 10
+  },
+  {
+    "id": "et6",
+    "city1": "Stockholm",
+    "city2": "Wien",
+    "points": 10
+  },
+  {
+    "id": "et7",
+    "city1": "Athina",
+    "city2": "Wilno",
+    "points": 11
+  },
+  {
+    "id": "et8",
+    "city1": "Amsterdam",
+    "city2": "Wilno",
+    "points": 12
+  },
+  {
+    "id": "et9",
+    "city1": "Berlin",
+    "city2": "Moskva",
+    "points": 12
+  },
+  {
+    "id": "et10",
+    "city1": "Frankfurt",
+    "city2": "Smolensk",
+    "points": 13
+  },
+  {
+    "id": "et11",
+    "city1": "Roma",
+    "city2": "Smyrna",
+    "points": 8
+  },
+  {
+    "id": "et12",
+    "city1": "Madrid",
+    "city2": "Zurich",
+    "points": 8
+  },
+  {
+    "id": "et13",
+    "city1": "Paris",
+    "city2": "Wien",
+    "points": 8
+  },
+  {
+    "id": "et14",
+    "city1": "Brest",
+    "city2": "Venezia",
+    "points": 8
+  },
+  {
+    "id": "et15",
+    "city1": "Palermo",
+    "city2": "Constantinople",
+    "points": 8
+  },
+  {
+    "id": "et16",
+    "city1": "Madrid",
+    "city2": "Dieppe",
+    "points": 8
+  },
+  {
+    "id": "et17",
+    "city1": "Berlin",
+    "city2": "Bucuresti",
+    "points": 8
+  },
+  {
+    "id": "et18",
+    "city1": "Barcelona",
+    "city2": "Bruxelles",
+    "points": 8
+  },
+  {
+    "id": "et19",
+    "city1": "Berlin",
+    "city2": "Roma",
+    "points": 9
+  },
+  {
+    "id": "et20",
+    "city1": "Bruxelles",
+    "city2": "Danzic",
+    "points": 9
+  },
+  {
+    "id": "et21",
+    "city1": "Paris",
+    "city2": "Zagrab",
+    "points": 7
+  },
+  {
+    "id": "et22",
+    "city1": "Amsterdam",
+    "city2": "Pamplona",
+    "points": 7
+  },
+  {
+    "id": "et23",
+    "city1": "London",
+    "city2": "Berlin",
+    "points": 7
+  },
+  {
+    "id": "et24",
+    "city1": "Brest",
+    "city2": "Marseille",
+    "points": 7
+  },
+  {
+    "id": "et25",
+    "city1": "Edinburgh",
+    "city2": "Paris",
+    "points": 7
+  },
+  {
+    "id": "et26",
+    "city1": "Marseille",
+    "city2": "Essen",
+    "points": 8
+  },
+  {
+    "id": "et27",
+    "city1": "Smolensk",
+    "city2": "Rostov",
+    "points": 8
+  },
+  {
+    "id": "et28",
+    "city1": "Barcelona",
+    "city2": "Munchen",
+    "points": 8
+  },
+  {
+    "id": "et29",
+    "city1": "Sarajevo",
+    "city2": "Sevastopol",
+    "points": 8
+  },
+  {
+    "id": "et30",
+    "city1": "Kyiv",
+    "city2": "Sochi",
+    "points": 8
+  },
+  {
+    "id": "et31",
+    "city1": "Athina",
+    "city2": "Angora",
+    "points": 5
+  },
+  {
+    "id": "et32",
+    "city1": "Sofia",
+    "city2": "Smyrna",
+    "points": 5
+  },
+  {
+    "id": "et33",
+    "city1": "Frankfurt",
+    "city2": "Khobenhaven",
+    "points": 5
+  },
+  {
+    "id": "et34",
+    "city1": "Budapest",
+    "city2": "Sofia",
+    "points": 5
+  },
+  {
+    "id": "et35",
+    "city1": "Rostov",
+    "city2": "Erzurum",
+    "points": 5
+  },
+  {
+    "id": "et36",
+    "city1": "Warzawa",
+    "city2": "Smolensk",
+    "points": 6
+  },
+  {
+    "id": "et37",
+    "city1": "Zurich",
+    "city2": "Brindisi",
+    "points": 6
+  },
+  {
+    "id": "et38",
+    "city1": "Zagrab",
+    "city2": "Brindisi",
+    "points": 6
+  },
+  {
+    "id": "et39",
+    "city1": "Kyiv",
+    "city2": "Petrograd",
+    "points": 6
+  },
+  {
+    "id": "et40",
+    "city1": "Zurich",
+    "city2": "Budapest",
+    "points": 6
+  },
+  {
+    "id": "et41",
+    "city1": "Palermo",
+    "city2": "Moskva",
+    "points": 20
+  },
+  {
+    "id": "et42",
+    "city1": "Brest",
+    "city2": "Petrograd",
+    "points": 20
+  },
+  {
+    "id": "et43",
+    "city1": "Lisboa",
+    "city2": "Danzic",
+    "points": 20
+  },
+  {
+    "id": "et44",
+    "city1": "Edinburgh",
+    "city2": "Athina",
+    "points": 21
+  },
+  {
+    "id": "et45",
+    "city1": "Cadiz",
+    "city2": "Stockholm",
+    "points": 21
+  },
+  {
+    "id": "et46",
+    "city1": "Khobenhaven",
+    "city2": "Erzurum",
+    "points": 21
+  }
 ];

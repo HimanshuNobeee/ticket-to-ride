@@ -24,6 +24,8 @@ export interface Route {
   length: number;
   color: RouteColor;
   claimedBy: string | null; // Player ID or null
+  isTunnel?: boolean;
+  requiredEngines?: number;
 }
 
 export interface DestinationTicket {
@@ -46,6 +48,18 @@ export interface Player {
   isReady: boolean;
   isConnected: boolean;
   isKicked?: boolean;
+  stationsLeft?: number;
+}
+
+export interface PendingTunnelClaim {
+  playerId: string;
+  routeId: string;
+  cardColorToUse: CardColor;
+  colorCardsUsed: number;
+  locomotivesUsed: number;
+  drawnCards: CardColor[];
+  extraCost: number;
+  canAfford: boolean;
 }
 
 export interface GameState {
@@ -63,6 +77,8 @@ export interface GameState {
   routes: Route[];
   mapType: 'CLASSIC_USA' | 'EUROPE' | 'INDIA';
   lastRoundTurnsLeft?: number;
+  pendingTunnelClaim?: PendingTunnelClaim | null;
+  stations?: Record<string, string>; // mapping from cityName -> playerId
 }
 
 export const CITIES: City[] = [

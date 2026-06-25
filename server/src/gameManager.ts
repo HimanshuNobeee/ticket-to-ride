@@ -100,7 +100,8 @@ function createPlayer(id: string, name: string, color: string): Player {
     trainsLeft: 45,
     points: 0,
     isReady: false,
-    isConnected: true
+    isConnected: true,
+    stationsLeft: 3
   };
 }
 
@@ -152,7 +153,8 @@ export async function createRoom(roomId: string): Promise<ActiveGame> {
     drawCountThisTurn: 0,
     pendingTickets: {},
     discardPile: [],
-    mapType: 'CLASSIC_USA' as const
+    mapType: 'CLASSIC_USA' as const,
+    stations: {}
   };
   await saveGame(code, game);
   return game;
@@ -174,10 +176,14 @@ export async function setMapType(roomId: string, mapType: 'CLASSIC_USA' | 'EUROP
   game.mapType = mapType;
   if (mapType === 'CLASSIC_USA') {
     game.routes = JSON.parse(JSON.stringify(USA_ROUTES));
+    game.stations = {};
   } else if (mapType === 'EUROPE') {
     game.routes = JSON.parse(JSON.stringify(EUROPE_ROUTES));
+    game.stations = {};
+    game.players.forEach(p => { p.stationsLeft = 3; });
   } else if (mapType === 'INDIA') {
     game.routes = JSON.parse(JSON.stringify(INDIA_ROUTES));
+    game.stations = {};
   }
   const mapLabel = mapType === 'CLASSIC_USA' ? 'Classic USA Map' : mapType === 'EUROPE' ? 'Europe Map' : 'India Map';
   game.history.push(`Map selected: ${mapLabel}.`);
@@ -558,6 +564,7 @@ export async function claimRouteAction(
   if (activePlayer.id !== playerId) return null;
   if (game.drawCountThisTurn > 0) return null; // Can't claim route if already drew cards
   if (game.pendingTickets[playerId]) return null; // Can't claim route if choosing destination tickets
+  if (game.pendingTunnelClaim) return null; // Can't claim route if a tunnel claim is pending
 
   const player = game.players.find(p => p.id === playerId)!;
   const route = game.routes.find(r => r.id === routeId);
@@ -580,11 +587,15 @@ export async function claimRouteAction(
 
   if (player.trainsLeft < route.length) return null; // Not enough trains
 
-  // Validate cards
+  // Validate cards (taking ferries requiredEngines into account)
   const cost = route.length;
-  let matches = 0;
-  let locomotives = player.cards['LOCOMOTIVE'];
+  const reqEngines = route.requiredEngines || 0;
 
+  if (player.cards['LOCOMOTIVE'] < reqEngines) {
+    return null; // Insufficient locomotives for ferry requirement
+  }
+
+  let matches = 0;
   if (route.color === 'GREY') {
     // If route is grey, cardColorToUse specifies what color they want to pay with
     if (cardColorToUse === 'LOCOMOTIVE') {
@@ -598,23 +609,84 @@ export async function claimRouteAction(
     matches = player.cards[cardColorToUse];
   }
 
-  if (matches + locomotives < cost) {
+  const remainingLocomotives = player.cards['LOCOMOTIVE'] - reqEngines;
+
+  if (matches + remainingLocomotives < cost - reqEngines) {
     return null; // Insufficient cards
   }
 
-  // Deduct cards and add to discard pile
-  let remainingCost = cost;
-  const colorUsedCount = Math.min(matches, remainingCost);
-  player.cards[cardColorToUse] -= colorUsedCount;
-  if (!game.discardPile) game.discardPile = [];
-  for (let i = 0; i < colorUsedCount; i++) {
-    game.discardPile.push(cardColorToUse);
-  }
-  remainingCost -= colorUsedCount;
+  // Calculate card counts to be used
+  const normalCardsUsed = Math.min(matches, cost - reqEngines);
+  const extraLocomotivesUsed = cost - reqEngines - normalCardsUsed;
+  const totalLocomotivesUsed = reqEngines + extraLocomotivesUsed;
 
-  if (remainingCost > 0) {
-    player.cards['LOCOMOTIVE'] -= remainingCost;
-    for (let i = 0; i < remainingCost; i++) {
+  if (route.isTunnel) {
+    // Tunnel logic: Initiate pending claim phase
+    // Draw 3 cards from the deck
+    checkAndRecycleDeck(game);
+    const drawnCards: CardColor[] = [];
+    for (let i = 0; i < 3; i++) {
+      const card = game.deck.pop();
+      if (card) drawnCards.push(card);
+      checkAndRecycleDeck(game);
+    }
+
+    // Calculate extra cost: count matching color or locomotive cards in drawn cards
+    let extraCost = 0;
+    for (const card of drawnCards) {
+      if (card === cardColorToUse || card === 'LOCOMOTIVE') {
+        extraCost++;
+      }
+    }
+
+    // Check if player can afford the extra cost
+    const playerNormalRemaining = player.cards[cardColorToUse] - normalCardsUsed;
+    const playerLocoRemaining = player.cards['LOCOMOTIVE'] - totalLocomotivesUsed;
+    const canAfford = (playerNormalRemaining + playerLocoRemaining >= extraCost);
+
+    game.pendingTunnelClaim = {
+      playerId: player.id,
+      routeId: route.id,
+      cardColorToUse: cardColorToUse,
+      colorCardsUsed: normalCardsUsed,
+      locomotivesUsed: totalLocomotivesUsed,
+      drawnCards: drawnCards,
+      extraCost: extraCost,
+      canAfford: canAfford
+    };
+
+    game.history.push(
+      `${player.name} initiated tunnel claim ${route.city1} to ${route.city2}. Drawn: ${drawnCards.join(', ')}. Extra cost: ${extraCost} cards.`
+    );
+
+    // If player CANNOT afford it, they automatically fail, and their turn ends
+    if (!canAfford) {
+      game.history.push(`${player.name} cannot afford the extra tunnel cost. Claim failed!`);
+      // Add drawn cards to discard pile
+      if (!game.discardPile) game.discardPile = [];
+      game.discardPile.push(...drawnCards);
+      
+      game.pendingTunnelClaim = null;
+      endTurn(game);
+    }
+
+    await saveGame(roomId, game);
+    return game;
+  }
+
+  // Deduct cards and add to discard pile (non-tunnel route)
+  if (!game.discardPile) game.discardPile = [];
+
+  if (normalCardsUsed > 0) {
+    player.cards[cardColorToUse] -= normalCardsUsed;
+    for (let i = 0; i < normalCardsUsed; i++) {
+      game.discardPile.push(cardColorToUse);
+    }
+  }
+
+  if (totalLocomotivesUsed > 0) {
+    player.cards['LOCOMOTIVE'] -= totalLocomotivesUsed;
+    for (let i = 0; i < totalLocomotivesUsed; i++) {
       game.discardPile.push('LOCOMOTIVE');
     }
   }
@@ -641,6 +713,116 @@ export async function claimRouteAction(
   }
 
   // Complete turn
+  endTurn(game);
+
+  await saveGame(roomId, game);
+  return game;
+}
+
+// Confirm tunnel claim
+export async function confirmTunnelClaimAction(roomId: string, playerId: string): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
+  if (!game || !game.pendingTunnelClaim) return null;
+
+  const claim = game.pendingTunnelClaim;
+  if (claim.playerId !== playerId) return null;
+  if (!claim.canAfford) return null; // Cannot confirm if you can't afford it
+
+  const player = game.players.find(p => p.id === playerId)!;
+  const route = game.routes.find(r => r.id === claim.routeId)!;
+
+  // Deduct base cards
+  if (!game.discardPile) game.discardPile = [];
+  
+  if (claim.colorCardsUsed > 0) {
+    player.cards[claim.cardColorToUse] -= claim.colorCardsUsed;
+    for (let i = 0; i < claim.colorCardsUsed; i++) {
+      game.discardPile.push(claim.cardColorToUse);
+    }
+  }
+
+  if (claim.locomotivesUsed > 0) {
+    player.cards['LOCOMOTIVE'] -= claim.locomotivesUsed;
+    for (let i = 0; i < claim.locomotivesUsed; i++) {
+      game.discardPile.push('LOCOMOTIVE');
+    }
+  }
+
+  // Deduct extra cards
+  let extraRemaining = claim.extraCost;
+  const normalAvailable = player.cards[claim.cardColorToUse] || 0;
+  const normalToUse = Math.min(normalAvailable, extraRemaining);
+  if (normalToUse > 0) {
+    player.cards[claim.cardColorToUse] -= normalToUse;
+    for (let i = 0; i < normalToUse; i++) {
+      game.discardPile.push(claim.cardColorToUse);
+    }
+    extraRemaining -= normalToUse;
+  }
+
+  if (extraRemaining > 0) {
+    player.cards['LOCOMOTIVE'] -= extraRemaining;
+    for (let i = 0; i < extraRemaining; i++) {
+      game.discardPile.push('LOCOMOTIVE');
+    }
+  }
+
+  // Put drawn cards into discard pile
+  game.discardPile.push(...claim.drawnCards);
+
+  checkAndRecycleDeck(game);
+  replenishFaceUpCards(game);
+
+  // Update route and player state
+  route.claimedBy = player.id;
+  player.claimedRoutes.push(route.id);
+  player.trainsLeft -= route.length;
+  player.points += ROUTE_POINTS[route.length];
+  creditCompletedTickets(game, player);
+
+  game.history.push(
+    `${player.name} paid extra cost and successfully claimed tunnel ${route.city1} to ${route.city2} for ${ROUTE_POINTS[route.length]} points.`
+  );
+
+  // Check if this triggers the final round (trains left is 2 or fewer)
+  if (player.trainsLeft <= 2 && game.lastPlayerId === null) {
+    game.lastPlayerId = player.id;
+    game.gameStage = 'LAST_ROUND';
+    game.history.push(`LAST ROUND TRIGGERED! ${player.name} has ${player.trainsLeft} cars remaining.`);
+  }
+
+  // Clear pending state and end turn
+  game.pendingTunnelClaim = null;
+  endTurn(game);
+
+  await saveGame(roomId, game);
+  return game;
+}
+
+// Cancel tunnel claim
+export async function cancelTunnelClaimAction(roomId: string, playerId: string): Promise<ActiveGame | null> {
+  const game = await getGame(roomId);
+  if (!game || !game.pendingTunnelClaim) return null;
+
+  const claim = game.pendingTunnelClaim;
+  if (claim.playerId !== playerId) return null;
+
+  const player = game.players.find(p => p.id === playerId)!;
+  const route = game.routes.find(r => r.id === claim.routeId)!;
+
+  // Put drawn cards into discard pile
+  if (!game.discardPile) game.discardPile = [];
+  game.discardPile.push(...claim.drawnCards);
+
+  checkAndRecycleDeck(game);
+  replenishFaceUpCards(game);
+
+  game.history.push(
+    `${player.name} chose not to pay the extra cost. Claim on tunnel ${route.city1} to ${route.city2} was cancelled.`
+  );
+
+  // Clear pending state and end turn
+  game.pendingTunnelClaim = null;
   endTurn(game);
 
   await saveGame(roomId, game);
