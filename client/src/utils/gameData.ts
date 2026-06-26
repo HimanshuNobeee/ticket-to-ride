@@ -167,7 +167,8 @@ export const ROUTE_POINTS: Record<number, number> = {
   3: 4,
   4: 7,
   5: 10,
-  6: 15
+  6: 15,
+  8: 21
 };
 
 export const CARD_COLORS: CardColor[] = [

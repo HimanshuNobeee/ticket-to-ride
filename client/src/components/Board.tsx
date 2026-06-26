@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { GameState, Route, CardColor, RouteColor, DestinationTicket } from '../utils/gameData.js';
+import { ROUTE_POINTS } from '../utils/gameData.js';
 import { USA_CITIES } from '../utils/usaMapData.js';
 import { EUROPE_CITIES } from '../utils/europeMapData.js';
 import { INDIA_CITIES } from '../utils/indiaMapData.js';
@@ -921,7 +922,7 @@ export const Board: React.FC<BoardProps> = ({
           <div style={{ fontSize: '13px', color: '#94a3b8', display: 'flex', gap: '16px' }}>
             <span>Tracks: <strong style={{ color: '#fff' }}>{hoveredRoute.length}</strong></span>
             <span>Color: <strong style={{ color: getHexColor(hoveredRoute.color) }}>{hoveredRoute.color}</strong></span>
-            <span>Points: <strong style={{ color: '#10b981' }}>{hoveredRoute.length === 6 ? 15 : hoveredRoute.length === 5 ? 10 : hoveredRoute.length === 4 ? 7 : hoveredRoute.length === 3 ? 4 : hoveredRoute.length === 2 ? 2 : 1}</strong></span>
+            <span>Points: <strong style={{ color: '#10b981' }}>{ROUTE_POINTS[hoveredRoute.length] || 0}</strong></span>
           </div>
           {(hoveredRoute.requiredEngines || 0) > 0 && (
             <div style={{ marginTop: '6px', fontSize: '12px', color: '#fbbf24', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>

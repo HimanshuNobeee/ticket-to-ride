@@ -378,30 +378,33 @@ function App() {
               Route Scoring Guide
             </h4>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{ color: '#94a3b8', fontSize: '10px' }}>1 Car</span>
-                <strong style={{ color: '#10b981' }}>1 pt</strong>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{ color: '#94a3b8', fontSize: '10px' }}>2 Cars</span>
-                <strong style={{ color: '#10b981' }}>2 pts</strong>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{ color: '#94a3b8', fontSize: '10px' }}>3 Cars</span>
-                <strong style={{ color: '#10b981' }}>4 pts</strong>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{ color: '#94a3b8', fontSize: '10px' }}>4 Cars</span>
-                <strong style={{ color: '#10b981' }}>7 pts</strong>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{ color: '#94a3b8', fontSize: '10px' }}>5 Cars</span>
-                <strong style={{ color: '#10b981' }}>10 pts</strong>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{ color: '#94a3b8', fontSize: '10px' }}>6 Cars</span>
-                <strong style={{ color: '#10b981' }}>15 pts</strong>
-              </div>
+              {(() => {
+                const isEurope = gameState.mapType === 'EUROPE';
+                const items = isEurope
+                  ? [
+                      { cars: 1, pts: 1 },
+                      { cars: 2, pts: 2 },
+                      { cars: 3, pts: 4 },
+                      { cars: 4, pts: 7 },
+                      { cars: 6, pts: 15 },
+                      { cars: 8, pts: 21 }
+                    ]
+                  : [
+                      { cars: 1, pts: 1 },
+                      { cars: 2, pts: 2 },
+                      { cars: 3, pts: 4 },
+                      { cars: 4, pts: 7 },
+                      { cars: 5, pts: 10 },
+                      { cars: 6, pts: 15 }
+                    ];
+
+                return items.map(item => (
+                  <div key={item.cars} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <span style={{ color: '#94a3b8', fontSize: '10px' }}>{item.cars} Car{item.cars > 1 ? 's' : ''}</span>
+                    <strong style={{ color: '#10b981' }}>{item.pts} pt{item.pts > 1 ? 's' : ''}</strong>
+                  </div>
+                ));
+              })()}
             </div>
           </div>
 
