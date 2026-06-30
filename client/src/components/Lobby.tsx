@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { GameState } from '../utils/gameData.js';
-import { User, ShieldAlert, Sparkles, LogOut, CheckCircle2, Circle, Trophy, Award } from 'lucide-react';
+import { User, ShieldAlert, Sparkles, LogOut, Trophy, Award } from 'lucide-react';
 
 interface LobbyProps {
   playerId: string;
@@ -29,7 +29,7 @@ export const Lobby: React.FC<LobbyProps> = ({
   gameState,
   createRoom,
   joinRoom,
-  toggleReady,
+  toggleReady: _toggleReady,
   selectMap,
   startGame,
   leaveRoom,
@@ -97,10 +97,10 @@ export const Lobby: React.FC<LobbyProps> = ({
 
   // If in active room but not playing yet, show the lobby waiting screen
   if (gameState && gameState.gameStage === 'LOBBY') {
-    const self = gameState.players.find(p => p.id === playerId);
+
     const hostPlayer = gameState.players.find(p => p.isConnected);
     const isHost = hostPlayer?.id === playerId;
-    const allReady = gameState.players.length >= 2 && gameState.players.every((p) => p.isReady || p.id === hostPlayer?.id);
+    const allReady = gameState.players.length >= 2;
 
     return (
       <div className="glass-panel animate-fade-in" style={{ padding: '32px', maxWidth: '600px', margin: '60px auto' }}>
@@ -205,15 +205,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                       Kick
                     </button>
                   )}
-                  {p.isReady ? (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981', fontSize: '14px', fontWeight: '500' }}>
-                      <CheckCircle2 size={16} /> Ready
-                    </span>
-                  ) : (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '14px' }}>
-                      <Circle size={16} /> Waiting
-                    </span>
-                  )}
                 </div>
               </div>
             ))}
@@ -228,37 +219,25 @@ export const Lobby: React.FC<LobbyProps> = ({
         )}
 
         <div style={{ display: 'flex', gap: '16px', marginTop: '24px' }}>
-          <button
-            className={`btn-primary`}
-            style={{
-              flex: 1,
-              backgroundColor: self?.isReady ? '#64748b' : '#10b981',
-              boxShadow: self?.isReady ? 'none' : '0 4px 14px rgba(16, 185, 129, 0.3)',
-              background: self?.isReady ? 'rgba(255, 255, 255, 0.08)' : undefined,
-              border: self?.isReady ? '1px solid rgba(255,255,255,0.1)' : undefined
-            }}
-            onClick={() => toggleReady(!self?.isReady)}
-          >
-            {self?.isReady ? 'Cancel Ready' : 'Ready Up'}
-          </button>
-
-          {isHost && (
+          {isHost ? (
             <button
               className="btn-primary"
-              style={{ flex: 1 }}
+              style={{ flex: 1, justifyContent: 'center' }}
               onClick={startGame}
               disabled={!allReady}
             >
               <Sparkles size={18} /> Start Adventure
             </button>
+          ) : (
+            <p style={{ flex: 1, fontSize: '14px', color: '#94a3b8', textAlign: 'center', background: 'rgba(255, 255, 255, 0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
+              ⏳ Waiting for host to start the adventure...
+            </p>
           )}
         </div>
 
         {isHost && !allReady && (
           <p style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', marginTop: '12px' }}>
-            {gameState.players.length < 2
-              ? 'Waiting for at least 2 players to join...'
-              : 'Waiting for all players to click Ready.'}
+            Waiting for at least 2 players to join...
           </p>
         )}
       </div>
