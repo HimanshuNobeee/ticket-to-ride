@@ -141,7 +141,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                   fontWeight: '500'
                 }}
               >
-                <option value="CLASSIC_USA">Classic USA Map (38 cities, official replica)</option>
+                <option value="CLASSIC_USA">Classic USA Map (38 cities)</option>
                 <option value="EUROPE">Europe Map (47 cities)</option>
                 <option value="INDIA">India Map (34 cities)</option>
               </select>
