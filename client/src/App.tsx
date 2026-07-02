@@ -235,6 +235,7 @@ function App() {
           kickPlayer={kickPlayer}
           error={error}
           setError={setError}
+          isConnected={isConnected}
         />
       </div>
     );

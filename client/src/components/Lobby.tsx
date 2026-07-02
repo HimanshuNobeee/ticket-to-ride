@@ -14,6 +14,7 @@ interface LobbyProps {
   kickPlayer: (playerId: string) => void;
   error: string | null;
   setError: (err: string | null) => void;
+  isConnected: boolean;
 }
 
 const PLAYER_COLORS = [
@@ -35,7 +36,8 @@ export const Lobby: React.FC<LobbyProps> = ({
   leaveRoom,
   kickPlayer,
   error,
-  setError
+  setError,
+  isConnected
 }) => {
   const [name, setName] = useState(() => localStorage.getItem('t2r_player_name') || '');
   const [selectedColor, setSelectedColor] = useState(() => localStorage.getItem('t2r_player_color') || PLAYER_COLORS[0].hex);
@@ -299,6 +301,27 @@ export const Lobby: React.FC<LobbyProps> = ({
           </div>
 
           <form onSubmit={isJoinMode ? handleJoin : handleCreate}>
+            {!isConnected && (
+              <div style={{
+                padding: '12px 16px',
+                background: 'rgba(234, 179, 8, 0.1)',
+                border: '1px solid rgba(234, 179, 8, 0.3)',
+                borderRadius: '8px',
+                color: '#facc15',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontSize: '13px',
+                lineHeight: '1.4'
+              }}>
+                <span style={{ fontSize: '16px' }}>⏳</span>
+                <span>
+                  Connecting to the game server. Because the server is hosted on a free tier, it may take up to 1 minute to wake up from sleep. Thank you for your patience!
+                </span>
+              </div>
+            )}
+
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', fontSize: '14px', color: '#94a3b8', marginBottom: '8px' }}>Nickname</label>
               <div style={{ position: 'relative' }}>
@@ -309,15 +332,17 @@ export const Lobby: React.FC<LobbyProps> = ({
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your name"
                   maxLength={15}
+                  disabled={!isConnected}
                   style={{
                     width: '100%',
                     padding: '10px 10px 10px 40px',
                     background: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
                     borderRadius: '8px',
-                    color: 'white',
+                    color: isConnected ? 'white' : '#64748b',
                     fontSize: '16px',
-                    outline: 'none'
+                    outline: 'none',
+                    cursor: isConnected ? 'text' : 'not-allowed'
                   }}
                 />
               </div>
@@ -330,6 +355,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                   <button
                     key={c.hex}
                     type="button"
+                    disabled={!isConnected}
                     onClick={() => setSelectedColor(c.hex)}
                     style={{
                       width: '36px',
@@ -338,9 +364,10 @@ export const Lobby: React.FC<LobbyProps> = ({
                       backgroundColor: c.hex,
                       border: selectedColor === c.hex ? '3px solid white' : '1px solid rgba(0,0,0,0.3)',
                       boxShadow: selectedColor === c.hex ? `0 0 12px ${c.hex}` : 'none',
-                      cursor: 'pointer',
+                      cursor: isConnected ? 'pointer' : 'not-allowed',
                       transform: selectedColor === c.hex ? 'scale(1.15)' : 'none',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
+                      opacity: isConnected ? 1 : 0.5
                     }}
                     title={c.name}
                   />
@@ -357,18 +384,20 @@ export const Lobby: React.FC<LobbyProps> = ({
                   onChange={(e) => setRoomIdInput(e.target.value.toUpperCase())}
                   placeholder="ABCD"
                   maxLength={4}
+                  disabled={!isConnected}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
                     background: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
                     borderRadius: '8px',
-                    color: 'white',
+                    color: isConnected ? 'white' : '#64748b',
                     fontSize: '18px',
                     fontWeight: '700',
                     letterSpacing: '3px',
                     textAlign: 'center',
-                    outline: 'none'
+                    outline: 'none',
+                    cursor: isConnected ? 'text' : 'not-allowed'
                   }}
                 />
               </div>
@@ -381,8 +410,21 @@ export const Lobby: React.FC<LobbyProps> = ({
               </div>
             )}
 
-            <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px' }}>
-              {isJoinMode ? 'Join Game Session' : 'Create Game Lobby'}
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={!isConnected}
+              style={{
+                width: '100%',
+                justifyContent: 'center',
+                padding: '12px',
+                backgroundColor: !isConnected ? '#475569' : undefined,
+                cursor: !isConnected ? 'not-allowed' : 'pointer',
+                opacity: !isConnected ? 0.7 : 1,
+                boxShadow: !isConnected ? 'none' : undefined
+              }}
+            >
+              {!isConnected ? 'Connecting to Server...' : (isJoinMode ? 'Join Game Session' : 'Create Game Lobby')}
             </button>
           </form>
         </div>

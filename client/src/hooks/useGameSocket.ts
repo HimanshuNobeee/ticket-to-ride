@@ -69,7 +69,6 @@ export const useGameSocket = () => {
 
     newSocket.on('connect_error', () => {
       setIsConnected(false);
-      setError(`Could not connect to game server at: ${url}`);
     });
 
     newSocket.on('game-updated', (updatedState: GameState) => {
