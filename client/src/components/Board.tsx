@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import type { GameState, Route, CardColor, RouteColor, DestinationTicket } from '../utils/gameData.js';
 import { ROUTE_POINTS } from '../utils/gameData.js';
 import { USA_CITIES } from '../utils/usaMapData.js';
@@ -251,24 +251,27 @@ export const Board: React.FC<BoardProps> = ({
   const activePlayer = gameState.players[gameState.turnIndex];
   const isMyTurn = activePlayer?.id === playerId && (gameState.gameStage === 'PLAYING' || gameState.gameStage === 'LAST_ROUND');
 
-  // Get active player's claimed routes and ticket connection statuses
-  const cityTicketStatuses: Record<string, { completed: boolean }[]> = {};
-  const myIncompleteTicketCities: string[] = [];
-  if (self?.destinationTickets) {
-    self.destinationTickets.forEach(ticket => {
-      const isConnected = isTicketConnectedWithStations(gameState, playerId, ticket);
-      if (!isConnected) {
-        myIncompleteTicketCities.push(ticket.city1, ticket.city2);
-      }
-      const cities = [ticket.city1, ticket.city2];
-      cities.forEach(cityName => {
-        if (!cityTicketStatuses[cityName]) {
-          cityTicketStatuses[cityName] = [];
+  // Get active player's claimed routes and ticket connection statuses (MEMOIZED)
+  const { cityTicketStatuses, myIncompleteTicketCities } = useMemo(() => {
+    const statuses: Record<string, { completed: boolean }[]> = {};
+    const incompleteCities: string[] = [];
+    if (self?.destinationTickets) {
+      self.destinationTickets.forEach(ticket => {
+        const isConnected = isTicketConnectedWithStations(gameState, playerId, ticket);
+        if (!isConnected) {
+          incompleteCities.push(ticket.city1, ticket.city2);
         }
-        cityTicketStatuses[cityName].push({ completed: isConnected });
+        const cities = [ticket.city1, ticket.city2];
+        cities.forEach(cityName => {
+          if (!statuses[cityName]) {
+            statuses[cityName] = [];
+          }
+          statuses[cityName].push({ completed: isConnected });
+        });
       });
-    });
-  }
+    }
+    return { cityTicketStatuses: statuses, myIncompleteTicketCities: incompleteCities };
+  }, [self?.destinationTickets, gameState.routes, gameState.stations, playerId]);
 
   // Choose dimension constraints based on the active map type
   // Classic USA and Europe are wider/taller (1220x920)
@@ -280,6 +283,72 @@ export const Board: React.FC<BoardProps> = ({
     const city = activeCities.find(c => c.name === name);
     return city ? { x: city.x, y: city.y } : { x: 0, y: 0 };
   };
+
+  const computedRoutes = useMemo(() => {
+    if (!gameState?.routes) return [];
+
+    const siblingMap = new Map<string, Route[]>();
+    for (const r of gameState.routes) {
+      const key = r.city1 < r.city2 ? `${r.city1}---${r.city2}` : `${r.city2}---${r.city1}`;
+      let list = siblingMap.get(key);
+      if (!list) {
+        list = [];
+        siblingMap.set(key, list);
+      }
+      list.push(r);
+    }
+
+    return gameState.routes.map((route: Route) => {
+      const c1 = getCityCoords(route.city1);
+      const c2 = getCityCoords(route.city2);
+      if (c1.x === 0 || c2.x === 0) return null;
+
+      const key = route.city1 < route.city2 ? `${route.city1}---${route.city2}` : `${route.city2}---${route.city1}`;
+      const siblingRoutes = siblingMap.get(key) || [];
+
+      let offsetX = 0;
+      let offsetY = 0;
+
+      if (siblingRoutes.length === 2) {
+        const dx = c2.x - c1.x;
+        const dy = c2.y - c1.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        if (len > 0) {
+          const px = -dy / len;
+          const py = dx / len;
+          const shiftDist = 8;
+          const routeIndex = siblingRoutes.findIndex(r => r.id === route.id);
+          const shiftDir = routeIndex === 0 ? 1 : -1;
+          offsetX = px * shiftDist * shiftDir;
+          offsetY = py * shiftDist * shiftDir;
+        }
+      }
+
+      const segments = getRouteSegments(
+        c1.x + 10 + offsetX,
+        c1.y + 10 + offsetY,
+        c2.x + 10 + offsetX,
+        c2.y + 10 + offsetY,
+        route.length
+      );
+
+      return {
+        route,
+        c1,
+        c2,
+        offsetX,
+        offsetY,
+        segments
+      };
+    }).filter(Boolean) as {
+      route: Route;
+      c1: { x: number; y: number };
+      c2: { x: number; y: number };
+      offsetX: number;
+      offsetY: number;
+      segments: { x1: number; y1: number; x2: number; y2: number; length: number; angle: number }[];
+    }[];
+  }, [gameState.routes, gameState.mapType]);
 
 
 
@@ -501,45 +570,15 @@ export const Board: React.FC<BoardProps> = ({
               );
             })()}
 
-            {/* Draw Connection Routes */}
-            {gameState.routes.map((route: Route) => {
-              const c1 = getCityCoords(route.city1);
-              const c2 = getCityCoords(route.city2);
-              if (c1.x === 0 || c2.x === 0) return null;
-
-              // Check offset for parallel double routes to prevent visual overlap
-              // We check if there's another route connecting the exact same cities
-              const siblingRoutes = gameState.routes.filter(
-                r => (r.city1 === route.city1 && r.city2 === route.city2) ||
-                     (r.city1 === route.city2 && r.city2 === route.city1)
-              );
-              
-              let offsetX = 0;
-              let offsetY = 0;
-
-              if (siblingRoutes.length === 2) {
-                // Calculate line perpendicular direction to shift parallel lines apart
-                const dx = c2.x - c1.x;
-                const dy = c2.y - c1.y;
-                const len = Math.sqrt(dx * dx + dy * dy);
-                const px = -dy / len; // Perpendicular vector
-                const py = dx / len;
-                
-                const shiftDist = 8; // Pixels offset
-                const routeIndex = siblingRoutes.findIndex(r => r.id === route.id);
-                const shiftDir = routeIndex === 0 ? 1 : -1;
-                offsetX = px * shiftDist * shiftDir;
-                offsetY = py * shiftDist * shiftDir;
-              }
-
-              const segments = getRouteSegments(
-                c1.x + 10 + offsetX, 
-                c1.y + 10 + offsetY, 
-                c2.x + 10 + offsetX, 
-                c2.y + 10 + offsetY, 
-                route.length
-              );
-              
+            {/* Draw Connection Routes (MEMOIZED for 60fps performance) */}
+            {computedRoutes.map(({ route, c1, c2, offsetX, offsetY, segments }: {
+              route: Route;
+              c1: { x: number; y: number };
+              c2: { x: number; y: number };
+              offsetX: number;
+              offsetY: number;
+              segments: { x1: number; y1: number; x2: number; y2: number; length: number; angle: number }[];
+            }) => {
               const isHovered = hoveredRoute?.id === route.id;
               const isClaimed = route.claimedBy !== null;
               const claimer = isClaimed ? gameState.players.find(p => p.id === route.claimedBy) : null;
@@ -564,7 +603,7 @@ export const Board: React.FC<BoardProps> = ({
                   />
 
                   {/* Draw train track segment elements */}
-                  {segments.map((seg, i) => (
+                  {segments.map((seg: { x1: number; y1: number; x2: number; y2: number; length: number; angle: number }, i: number) => (
                     <g
                       key={i}
                       transform={`translate(${(seg.x1 + seg.x2) / 2}, ${(seg.y1 + seg.y2) / 2}) rotate(${seg.angle})`}
@@ -616,7 +655,7 @@ export const Board: React.FC<BoardProps> = ({
                           strokeWidth={isHovered ? 1.5 : (isClaimed ? 1.2 : (route.color === 'BLACK' ? 0.95 : 0.6))}
                           style={{
                             transition: 'stroke 0.2s, stroke-width 0.2s',
-                            filter: isHovered || isClaimed ? `drop-shadow(0 0 4px ${trackColor})` : 'none',
+                            filter: isHovered ? 'drop-shadow(0 0 4px #ffffff)' : 'none',
                             opacity: isClaimed ? 1 : (route.color === 'WHITE' ? 1.0 : 0.7)
                           }}
                         />
@@ -772,9 +811,7 @@ export const Board: React.FC<BoardProps> = ({
                     stroke={isHighlighted ? '#ffffff' : '#60a5fa'}
                     strokeWidth={isHighlighted ? 2.5 : 2}
                     style={{
-                      filter: isHighlighted 
-                        ? 'drop-shadow(0 0 8px #fbbf24)' 
-                        : 'drop-shadow(0 0 3px rgba(96, 165, 250, 0.45))',
+                      filter: isHighlighted ? 'drop-shadow(0 0 8px #fbbf24)' : 'none',
                       cursor: isClickable ? 'pointer' : (isHighlighted ? 'help' : 'default')
                     }}
                   />

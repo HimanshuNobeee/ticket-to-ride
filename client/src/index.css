@@ -151,9 +151,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes claim-route-anim {
-  0% { stroke-dashoffset: 24; filter: drop-shadow(0 0 0px var(--route-color)); }
-  50% { filter: drop-shadow(0 0 15px var(--route-color)); }
-  100% { stroke-dashoffset: 0; filter: drop-shadow(0 0 4px var(--route-color)); }
+  0% { stroke-dashoffset: 24; opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
 }
 
 @keyframes svg-pulse {
@@ -563,7 +563,7 @@ h1, h2, h3, h4, h5, h6 {
   }
   50% {
     transform: scale(1.15);
-    filter: brightness(1.25) drop-shadow(0 0 10px var(--bump-glow, #3b82f6));
+    filter: brightness(1.25);
   }
   100% {
     transform: scale(1);
